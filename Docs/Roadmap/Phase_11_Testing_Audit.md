@@ -1,0 +1,188 @@
+# Phase 11 — Testing, Security & Learning Audit
+
+## Phase Goal
+The objective of this phase is to validate the reliability, security, and document completeness of the entire system. We will configure end-to-end integration tests using Playwright, perform load checks on the rate limiting middleware, verify ownership authorization rules across endpoints, and audit the complete `Docs/Learning/` deep-dive directory to ensure the repository meets portfolio-grade quality standards.
+
+---
+
+## Folder Structure
+
+```text
+Foundry/
+├── README.md                  # Project Root README
+├── e2e/                       # Playwright E2E test directory
+│   ├── playwright.config.js
+│   ├── package.json
+│   └── specs/
+│       ├── initial_generation.spec.js
+│       ├── conflict_resolution.spec.js
+│       └── version_rollback.spec.js
+├── Docs/
+│   └── Learning/              # Living Knowledge Base Deep-Dives
+│       ├── README.md          # Knowledge Base Map index
+│       ├── 01_Local_Dev_Environment.md
+│       ├── 02_JWT_And_Rate_Limiting.md
+│       ├── 03_Blueprint_Lifecycle_And_Version_Control.md
+│       ├── 04_LLM_Service_And_Provider_Abstraction.md
+│       ├── 05_LangGraph_Multi_Agent_Orchestration.md
+│       ├── 06_Decision_Memory_Consistency.md
+│       ├── 07_WebSockets_And_Async_Streaming.md
+│       ├── 08_Targeted_Regeneration_And_Conflict_Resolution.md
+│       ├── 09_Zustand_State_Management.md
+│       ├── 10_Interactive_Document_Canvas_Design.md
+│       └── 11_Testing_And_Security_Audit.md
+├── backend/
+│   └── README.md              # Backend documentation
+└── frontend/
+    └── README.md              # Frontend documentation
+```
+
+---
+
+## Module Definitions
+
+### 1. E2E Playwright Suite
+* **Purpose**: Simulates real-user browser journeys.
+* **Responsibilities**: Automating login, inputting ideas, observing WebSockets, triggering regenerations, verifying conflict warnings, and checking rollbacks.
+* **Dependencies**: Playwright test framework.
+* **Inputs**: Live running docker container services.
+* **Outputs**: Test reports and failure screenshots.
+
+### 2. Security and Access Controller Audit
+* **Purpose**: Hardens REST routes against exploitation.
+* **Responsibilities**: Asserting that endpoints block unauthorized requests, verifying rate limit caps work on mock pipelines, and auditing raw SQL query injections.
+* **Dependencies**: None.
+
+### 3. Living Knowledge Base Verification
+* **Purpose**: Audit documentation quality for the resume track.
+* **Responsibilities**: Indexing and checking that all 10 deep-dives are written, contain diagrams, and accurately detail how the codebase resolved architectural problems.
+* **Dependencies**: None.
+
+---
+
+## Atomic Implementation Tasks
+
+### Task 11.1: Configure Playwright Test Package
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 10.12
+* **Description**: Create `e2e/` folder. Initialize npm configurations, install `@playwright/test`, and configure `playwright.config.js` to target localhost servers.
+* **Definition of Done**: Playwright suite runs locally.
+
+### Task 11.2: Write E2E Test - Initial Generation
+* **Size**: M
+* **Risk**: Low
+* **Prerequisites**: Task 11.1
+* **Description**: Write `e2e/specs/initial_generation.spec.js`. Automates:
+  - User registration.
+  - Submitting startup idea.
+  - Asserting WebSocket stream pane opens and token elements are added dynamically.
+  - Asserting editor canvas renders when complete event is captured.
+* **Definition of Done**: Test executes successfully.
+
+### Task 11.3: Write E2E Test - Conflict and Overrides
+* **Size**: M
+* **Risk**: Medium
+* **Prerequisites**: Task 11.2
+* **Description**: Write `e2e/specs/conflict_resolution.spec.js`. Automates:
+  - Navigating to technical block, opening rewrite sidebar.
+  - Inputting conflicting database note, asserting Conflict Banner displays.
+  - Clicking "Proceed & Override", asserting conflict resolves and target section updates.
+* **Definition of Done**: Test verifies complete conflict warning and override lifecycle.
+
+### Task 11.4: Write E2E Test - Version Rollbacks
+* **Size**: M
+* **Risk**: Low
+* **Prerequisites**: Task 11.2
+* **Description**: Write `e2e/specs/version_rollback.spec.js`. Automates:
+  - Modifying a section multiple times to create version stack.
+  - Clicking version toggle to swap content.
+  - Invoking rollback and verifying that active contents revert.
+* **Definition of Done**: Test verifies rollback updates screen values.
+
+### Task 11.5: Perform Rate Limiter Stresstest
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 2.5
+* **Description**: Write shell script to send rapid parallel curl requests to auth and blueprints routes. Verify that HTTP 429 is returned once limits are reached.
+* **Definition of Done**: Script logs 429 responses.
+
+### Task 11.6: Execute Multi-User Scoping Security Audit
+* **Size**: S
+* **Risk**: Medium
+* **Prerequisites**: Task 3.7
+* **Description**: Write integration test where User B attempts to trigger a GET, DELETE, or POST regeneration request on a Blueprint owned by User A. Assert that Django returns `403 Forbidden` for all cases.
+* **Definition of Done**: API routes securely enforce user ownership scopes.
+
+### Task 11.7: Create Root README.md
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 1.6
+* **Description**: Create root `README.md`. It must include: project overview, startup debate description, monorepo directory layout (`backend/` + `frontend/`), and step-by-step local launch instructions using Docker Compose. It must intentionally exclude any cloud deployment or CI/CD pipelines sections, keeping scope boundaries clean.
+* **Definition of Done**: Root `README.md` exists and contains correct layout maps and Compose launch instructions.
+
+### Task 11.8: Create backend/README.md
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 3.4, Task 7.8
+* **Description**: Create `backend/README.md` documenting: Django and DRF configuration structures, local virtualenv installations, environment variables details, Celery background worker daemon startup, local testing steps via pytest, and commands to run the LangGraph agent layer locally from the Django shell.
+* **Definition of Done**: `backend/README.md` is populated with setup, environment mapping, testing, and runtime instructions.
+
+### Task 11.9: Create frontend/README.md
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 9.1, Task 10.10
+* **Description**: Create `frontend/README.md` documenting: React structure, npm packages list, environment variables configs, dev server runtime commands (`npm run dev`), and WebSocket connection management configuration details.
+* **Definition of Done**: `frontend/README.md` exists and contains full installation, environment setup, and runtime instructions.
+
+### Task 11.10: Create Docs/Learning/README.md
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 11.11
+* **Description**: Create `Docs/Learning/README.md` acting as the master table of contents and navigation index mapping out all 11 detailed knowledge base files generated during the build.
+* **Definition of Done**: Master map index file exists and lists active links to all deep-dive files.
+
+### Task 11.11: Write and Review Docs/Learning/ Files
+* **Size**: L
+* **Risk**: Low
+* **Prerequisites**: None (living documentation)
+* **Description**: Complete all 11 detailed markdown learning files inside `Docs/Learning/` corresponding to the architectural deep-dives flagged in each phase. Include Mermaid diagrams and code outlines.
+* **Definition of Done**: All 11 markdown files exist and render properly in Markdown viewer.
+
+### Task 11.12: Final Code Audit and Validation Checklist
+* **Size**: S
+* **Risk**: Low
+* **Prerequisites**: Task 11.3, Task 11.4, Task 11.11
+* **Description**: Run a complete codebase audit. Verify:
+  - No temporary mocks or placeholder implementations remain in production paths.
+  - Final folder directory layout matches planning models.
+  - Build succeeds without errors.
+  - All unit, integration, and E2E specs pass successfully.
+* **Definition of Done**: Checklist passes, and code is clean of all diagnostic debris.
+
+---
+
+## Milestone Verification Checkpoint (Milestone 11)
+* **Status**: Complete integration.
+* **Behavior**: Full system tested and validated. Security checks confirm permissions boundaries, rate limits prevent abuse, and documentation is complete.
+* **Incomplete Features**: None (project is production-ready for portfolio deployment).
+
+---
+
+## Suggested Git Commits
+- `feat/e2e/setup`: Install Playwright and create base configuration files.
+- `feat/e2e/specs-gen`: Write specs for registration and stream generation checks.
+- `feat/e2e/specs-conflict`: Write specs for conflicts, overrides, and rollback checks.
+- `test/security/rate-limits`: Auth rate checks and curl load verifiers.
+- `test/security/scoping`: Scope ownership checks.
+- `docs/learning-audit`: Complete documentation review.
+
+---
+
+## Suggested GitHub Issues
+* **Issue #5.6**: Conduct final testing, verification, and `Docs/Learning` audits.
+
+---
+
+## Expected Docs/Learning Deep-Dives
+* **`Docs/Learning/11_Testing_And_Security_Audit.md`**: Summary of E2E coverage results, rate limiting performance metrics, and database access authorization design.
