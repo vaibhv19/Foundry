@@ -123,6 +123,70 @@ This table is queried whenever a section is regenerated to prevent logical drift
 
 ---
 
+## 3.8 Extended Runtime and Lifecycle Tables
+
+The initial schema is sufficient for basic generation, but the production-grade version needs a small number of explicit runtime tables to support debate state, exports, and attachments.
+
+### 3.8.1 `agent_runs`
+| Column | Type | Constraints |
+| :--- | :--- | :--- |
+| `id` | `UUID` | PK |
+| `blueprint_id` | `UUID` | FK (blueprints.id) |
+| `run_type` | `ENUM` | `INITIAL_DEBATE`, `REGENERATION`, `MANUAL_OVERRIDE` |
+| `status` | `ENUM` | `PENDING`, `RUNNING`, `COMPLETED`, `FAILED` |
+| `started_at` | `TIMESTAMPTZ` | Default: NOW() |
+| `finished_at` | `TIMESTAMPTZ` | Nullable |
+
+### 3.8.2 `agent_messages`
+| Column | Type | Constraints |
+| :--- | :--- | :--- |
+| `id` | `UUID` | PK |
+| `agent_run_id` | `UUID` | FK (agent_runs.id) |
+| `agent_name` | `VARCHAR(50)` | e.g. `Investor`, `Product_Manager`, `Tech_Lead` |
+| `message_type` | `VARCHAR(20)` | e.g. `TOKEN`, `STATUS`, `DEBUG` |
+| `content` | `TEXT` | Payload or stream chunk |
+| `created_at` | `TIMESTAMPTZ` | Default: NOW() |
+
+### 3.8.3 `generation_events`
+| Column | Type | Constraints |
+| :--- | :--- | :--- |
+| `id` | `UUID` | PK |
+| `blueprint_id` | `UUID` | FK (blueprints.id) |
+| `event_type` | `VARCHAR(50)` | `JOB_CREATED`, `NODE_STARTED`, `NODE_COMPLETED`, `NODE_FAILED`, `COMPLETE`, `ERROR` |
+| `details` | `JSONB` | Event payload |
+| `created_at` | `TIMESTAMPTZ` | Default: NOW() |
+
+### 3.8.4 `exports`
+| Column | Type | Constraints |
+| :--- | :--- | :--- |
+| `id` | `UUID` | PK |
+| `blueprint_id` | `UUID` | FK (blueprints.id) |
+| `format` | `VARCHAR(20)` | `MARKDOWN`, `PDF`, `DOCX` |
+| `storage_path` | `TEXT` | File location |
+| `created_at` | `TIMESTAMPTZ` | Default: NOW() |
+
+### 3.8.5 `attachments`
+| Column | Type | Constraints |
+| :--- | :--- | :--- |
+| `id` | `UUID` | PK |
+| `blueprint_id` | `UUID` | FK (blueprints.id) |
+| `file_name` | `VARCHAR(255)` | Not Null |
+| `mime_type` | `VARCHAR(100)` | Not Null |
+| `storage_path` | `TEXT` | Not Null |
+| `created_at` | `TIMESTAMPTZ` | Default: NOW() |
+
+### 3.8.6 Suggested Indexes
+- `decision_log(blueprint_id, is_active)`
+- `versions(section_id, version_number)`
+- `agent_runs(blueprint_id, status)`
+- `generation_events(blueprint_id, created_at)`
+- `exports(blueprint_id, created_at)`
+
+### 3.8.7 Relationship Notes
+- `blueprints` has one-to-many relationships to `agent_runs`, `generation_events`, `exports`, and `attachments`.
+- `agent_runs` has one-to-many relationships to `agent_messages`.
+- `versions` remain the authoritative content snapshots for section regeneration and rollback.
+
 ## 4. Key Retrieval Logic: The "Consistency Join"
 
 When a user requests a regeneration for a **Tech Stack** section (Flow 3), the backend executes the following logic:

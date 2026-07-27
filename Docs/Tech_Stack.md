@@ -37,3 +37,17 @@
 
 - **Not Spring AI / Java for the agent layer**: Foundry is explicitly the Python/Django-track project in the portfolio; keeping the AI layer in Python keeps that resume story clean
 - **Not a vector DB**: Decision Memory is retrieval over *this blueprint's own* structured decision log (a handful of rows per blueprint), not semantic search over a large external corpus — a vector store would be solving a problem Foundry doesn't have. That distinction is the same one drawn in the PRD against Phoenix's RAG.
+
+## 7. LLM Provider Abstraction
+
+Foundry uses a provider abstraction so the orchestration layer is not coupled to Gemini in the long term.
+
+- `LLMService` is the application-facing interface for model calls, structured output, streaming, and retry handling.
+- `GeminiProvider` is the v1 implementation and is the only provider in the initial build.
+- Future providers can be introduced by implementing the same interface and swapping the provider registration in the runtime.
+
+### Service Expectations
+- The abstraction supports a streaming interface for real-time token delivery.
+- It returns structured output for decision extraction and consistency checks.
+- It enforces timeout controls, retry limits, and normalized error handling.
+- The runtime can cancel or retry a specific node without disrupting the rest of the blueprint generation flow.

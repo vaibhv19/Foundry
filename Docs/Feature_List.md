@@ -29,3 +29,11 @@
 - Enforces consistency across edits — agents stay aligned with earlier decisions unless deliberately overridden
 - Distinct from Phoenix's RAG: this is memory of the system's own generation history, not retrieval from external documents — a consistency problem, not a grounding problem
 - Optional stretch: surface contradictions to the user directly — "this conflicts with an earlier decision, keep both or resolve?"
+
+## Strategy Room Debate & Regeneration
+
+- The Strategy Room now behaves as a multi-agent debate with rounds, not a fixed three-step pipeline.
+- Each round updates shared state with messages, agent outputs, constraints, conflicts, and decisions.
+- The system supports bounded iterations, convergence checks, and a tie-breaking strategy when the debate cannot fully resolve.
+- Regeneration is section-aware: changing the tech stack can trigger a targeted rerun of the Tech Lead and related decision review, while the PM and Investor may also be re-invoked when the scope or business assumptions change.
+- The blueprint lifecycle expands beyond queued/generating/ready to support drafting, partial generation, editing, export, archival, failure, and deletion states.

@@ -65,6 +65,38 @@ This flow converts the dynamic, multi-versioned blueprint into a portable format
 
 ---
 
+## 5. Debate Rounds, Convergence, and Regeneration Strategy
+
+The initial generation flow now behaves as a bounded debate rather than a single pass through three agents.
+
+1. **Round 0 — Intake:** The system creates a `DRAFT` blueprint, records the initial idea, and seeds the state graph with the first constraints.
+2. **Round 1 — Investor Review:** The Investor evaluates market viability, expected customer value, and cost sensitivity.
+3. **Round 2 — Product Strategy:** The PM proposes scope, positioning, and a feature set that reflects the investor constraints.
+4. **Round 3 — Technical Feasibility:** The Tech Lead checks whether the PM's proposal is implementable within the investor's constraints and the chosen risk posture.
+5. **Round 4+ — Negotiation:** The Investor may challenge the proposed cost, the PM may revise product scope, and the Tech Lead may negotiate trade-offs. The loop continues until the state converges or the iteration limit is reached.
+6. **Convergence:** The system checks whether the active decisions are stable and whether the current conflicts list is empty or resolved. If not, it applies a tie-breaker: the Tech Lead proposes the lowest-risk technical path, and the Investor/PM perform one final review cycle.
+7. **Shared State Evolution:** Each round appends to `messages`, updates `agent_outputs`, populates `constraints` and `conflicts`, and promotes selected values into `decisions` or `pending_decisions`.
+
+### Regeneration Strategy
+When a section is regenerated, the system does not blindly rerun the entire debate.
+
+- If the Tech Stack changes, the Tech Lead reruns first. The PM and Investor may also rerun if the change materially affects product scope or business viability.
+- The Consistency Check node is invoked after every targeted regeneration to confirm that the revised section still respects the active decision set.
+- New decisions are extracted whenever a new commitment is introduced, overridden, or materially revised.
+- Each regeneration creates a new section version. The previous version remains available for rollback and comparison.
+- Rollback is handled by restoring the prior active version for the section and reactivating the corresponding decision state, while preserving the newer version as a historical artifact.
+
+## 6. Blueprint Lifecycle in Practice
+
+The lifecycle now follows the production-grade sequence:
+
+- `DRAFT` → `QUEUED` → `GENERATING` → `READY` for the first successful pass.
+- `READY` → `EDITING` when the user begins a regen or manual edit.
+- `EDITING` → `GENERATING` for targeted regeneration.
+- `GENERATING` may temporarily enter `PARTIALLY_GENERATED` if some sections are ready while others still run.
+- `READY` or `EDITING` can move to `EXPORTING`, then `ARCHIVED`.
+- Any fatal failure moves to `FAILED`; a soft delete moves to `DELETED`.
+
 ## Summary of Decision Memory Engine Invocation
 
 | Flow Phase | Decision Memory Action | Logic Type |

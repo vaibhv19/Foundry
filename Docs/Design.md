@@ -99,3 +99,85 @@ If the user loses internet connection during the stream:
 -   The backend continues the debate (it is non-blocking and detached from the socket).
 -   Upon reconnection, the React frontend requests the current state of the blueprint from the API.
 -   The UI "catches up" by rendering the sections that were completed while the user was offline.
+
+## 6. Expanded LangGraph State Model
+
+The shared state in the Strategy Room is now a first-class architecture artifact rather than a thin container for a few strings.
+
+| Field | Purpose | Evolution |
+| :--- | :--- | :--- |
+| `idea` | Stores the original user input and any normalized context derived from it. | Fixed at creation, but can be enriched with extracted constraints during the first round. |
+| `messages` | Holds the transcript of turns between the agent personas and the user. | Grows with every debate iteration and is preserved for auditability. |
+| `agent_outputs` | Stores the raw or structured output emitted by each agent node at each round. | Updated after each node completes and used by later nodes as context. |
+| `debate_history` | Captures the round-by-round narrative of the debate. | Appended to after each iteration so regeneration can reconstruct how the blueprint evolved. |
+| `constraints` | Stores business, product, or technical constraints generated or accepted by the agents. | Refined as the debate progresses and used to gate later proposals. |
+| `conflicts` | Tracks contradictions discovered by the Consistency Check node. | Populated as soon as a conflict appears and persists until resolved. |
+| `resolved_conflicts` | Stores the conflict plus the resolution strategy or override applied. | Updated when a conflict is accepted, negotiated, or explicitly overridden. |
+| `decisions` | Holds the active, committed decisions that should govern regeneration. | Consolidated after each round and used as the authoritative decision set. |
+| `pending_decisions` | Tracks proposals that need review before becoming active. | Cleared as decisions are approved, rejected, or superseded. |
+| `current_agent` | Indicates which agent is currently executing in the graph. | Moves forward with each node transition and is exposed to the UI for status streaming. |
+| `confidence_scores` | Stores the confidence of each agent or the graph as a whole for key decisions. | Updated after each turn; used to decide whether to continue debating or force convergence. |
+| `iteration_count` | Counts how many debate rounds have completed. | Incremented after every round and used for the turn limit enforcement. |
+| `blueprint_context` | Holds the evolving blueprint section draft, metadata, and references to prior versions. | Updated as sections are generated and later re-generated. |
+
+This state is persisted between rounds and reused during regeneration. A regeneration request does not start from a blank prompt; it starts from the existing state plus the relevant active decisions.
+
+## 7. Blueprint Lifecycle States
+
+The lifecycle is expanded from a simple status enum to a true document lifecycle that mirrors real editing workflows.
+
+| State | Meaning | Typical Transition |
+| :--- | :--- | :--- |
+| `DRAFT` | The blueprint exists but has not yet entered generation. | Created from user input. |
+| `QUEUED` | Generation has been scheduled. | Transitioned by the job dispatcher. |
+| `GENERATING` | One or more agent nodes are actively producing content. | Set by the runtime worker. |
+| `PARTIALLY_GENERATED` | Some sections are complete but others are still pending or failed. | Reached after a partial run or interruption. |
+| `READY` | The blueprint has passed the initial generation cycle and is editable. | Reached after convergence. |
+| `EDITING` | The user is actively modifying or regenerating content. | Entered after the first review session begins. |
+| `EXPORTING` | The blueprint is being assembled for markdown/PDF export. | Triggered by the export endpoint. |
+| `ARCHIVED` | The blueprint is preserved as a completed artifact but no longer active. | User-initiated or lifecycle-managed. |
+| `FAILED` | Generation or regeneration hit a blocking error. | Entered on fatal runtime errors. |
+| `DELETED` | The blueprint exists only as a soft-deleted record. | User or admin deletion. |
+
+### Lifecycle Transitions
+- A blueprint moves from `DRAFT` to `QUEUED` when the generation job is accepted.
+- `QUEUED` moves to `GENERATING` when the worker begins execution.
+- `GENERATING` may move to `PARTIALLY_GENERATED` if one or more sections are complete and others are still pending.
+- `PARTIALLY_GENERATED` or `GENERATING` may move to `READY` once convergence succeeds.
+- `READY` moves to `EDITING` as soon as the user starts a review or regeneration action.
+- `EDITING` may return to `GENERATING` when a targeted regeneration is launched.
+- `READY` or `EDITING` may move to `EXPORTING` during export.
+- `EXPORTING` ends in `ARCHIVED` or `READY` depending on the workflow.
+- Any state may transition to `FAILED` on an unrecoverable runtime issue.
+- `DELETED` is terminal and should not be used as a target for regular generation.
+
+### Invalid Transitions
+- `DRAFT` cannot jump directly to `EXPORTING`.
+- `FAILED` cannot transition to `READY` without a new generation attempt or manual recovery.
+- `DELETED` cannot be edited, exported, or re-generated.
+- `ARCHIVED` should not be used to continue active generation unless the user explicitly restores it.
+
+## 8. LLM Provider Abstraction
+
+Foundry avoids direct provider coupling by introducing a thin execution abstraction at the application boundary.
+
+- `LLMService` is the application-facing interface for prompt execution, streaming, structured output, retries, and timeout handling.
+- `GeminiProvider` is the current implementation for v1.
+- Additional providers can be plugged in later without changing the orchestration graph.
+
+### Interface Expectations
+- The service exposes a streaming interface so the UI can receive tokens progressively.
+- It supports structured output for extraction and decision logging.
+- It implements retry logic with backoff for transient provider failures.
+- It enforces timeout and cancellation boundaries so long-running debate nodes do not hang indefinitely.
+- It normalizes provider-specific errors into a small set of application-level error codes.
+
+## 9. Memory Types in the Runtime
+
+Foundry distinguishes between three memory layers to keep the system understandable and reliable.
+
+- **Conversation Memory** stores the temporary discussion transcript, agent messages, and current debate state.
+- **Decision Memory** stores the stable commitments and rationales that must govern future updates.
+- **Persistent Blueprint** stores the evolving document, section versions, and export artifacts.
+
+This separation prevents the system from conflating active chat context with permanent design commitments.

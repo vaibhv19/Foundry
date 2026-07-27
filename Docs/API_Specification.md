@@ -129,7 +129,55 @@ Sent if the LLM or graph execution fails.
 
 ---
 
-## Part D: Error Handling
+## Part D: Real-Time WebSocket Events
+
+The WebSocket protocol is explicitly typed so the frontend can render a deterministic mission-control experience.
+
+### 1. Event Envelope
+Every message includes a `type` field and a payload object.
+```json
+{
+  "type": "JOB_CREATED",
+  "payload": {}
+}
+```
+
+### 2. Event Catalog
+| Event | Direction | Purpose | Payload |
+| :--- | :--- | :--- | :--- |
+| `JOB_CREATED` | Server → Client | A new generation job has been accepted. | `{"blueprint_id": "UUID", "job_id": "UUID"}` |
+| `NODE_STARTED` | Server → Client | A specific graph node has started. | `{"node": "Investor", "iteration": 1}` |
+| `NODE_COMPLETED` | Server → Client | A node finished successfully. | `{"node": "Tech_Lead", "iteration": 2}` |
+| `NODE_FAILED` | Server → Client | A node failed and the graph may recover or stop. | `{"node": "Product_Manager", "error_code": "TIMEOUT"}` |
+| `TOKEN` | Server → Client | Incremental streaming chunk from the active node. | `{"node": "Investor", "content": "...", "is_final": false}` |
+| `STATUS` | Server → Client | Human-readable job progress or lifecycle transition. | `{"status": "GENERATING", "message": "Investor is evaluating market viability"}` |
+| `HEARTBEAT` | Server → Client | Keeps the connection alive during long operations. | `{"ts": "ISO-8601"}` |
+| `DEBUG` | Server → Client | Internal diagnostics for development builds. | `{"node": "Consistency_Check", "details": {}}` |
+| `COMPLETE` | Server → Client | The entire generation flow completed. | `{"blueprint_id": "UUID", "status": "READY"}` |
+| `ERROR` | Server → Client | Terminal or recoverable runtime error. | `{"code": "LLM_TIMEOUT", "message": "..."}` |
+
+### 3. Client → Server Commands
+The client may also send control messages over the same WebSocket channel.
+- `resume_generation`: Continue a previously interrupted run.
+- `cancel_generation`: Stop the active run.
+- `request_state`: Request the latest blueprint snapshot.
+
+## Part E: Additional REST Endpoints
+
+| Path | Method | Description | Response |
+| :--- | :--- | :--- | :--- |
+| `/blueprints/{id}/` | `DELETE` | Soft-delete a blueprint. | `200: {"deleted": true}` |
+| `/blueprints/{id}/rename/` | `PATCH` | Rename the blueprint title. | `200: BlueprintDetail` |
+| `/blueprints/{id}/duplicate/` | `POST` | Duplicate an existing blueprint as a new draft. | `201: {"blueprint_id": "UUID"}` |
+| `/blueprints/{id}/cancel/` | `POST` | Cancel an active generation run. | `200: {"status": "CANCELLED"}` |
+| `/blueprints/{id}/retry/` | `POST` | Retry a failed or interrupted generation. | `202: {"job_id": "UUID"}` |
+| `/versions/{id}/restore/` | `POST` | Restore a prior section version. | `200: Version` |
+| `/blueprints/{id}/exports/` | `GET` | List all exported artifacts. | `List<Export>` |
+| `/decisions/{id}/override/` | `POST` | Manually override a stored decision. | `200: DecisionLogEntry` |
+| `/blueprints/{id}/dependencies/` | `GET` | Return the decision dependency graph. | `List<DependencyNode>` |
+| `/blueprints/{id}/metadata/` | `GET` | Return blueprint lifecycle metadata and version counters. | `BlueprintMetadata` |
+
+## Part F: Error Handling
 Foundry uses standard HTTP codes:
 - `403 Forbidden`: User attempting to access a blueprint they do not own.
 - `409 Conflict`: Attempting to regenerate a section while the blueprint is still in a `GENERATING` state.

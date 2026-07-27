@@ -103,3 +103,26 @@ Standard "dots" are prohibited. Use a **"Thinking Pulse"**:
 *   ❌ **No Generic Loading Spinners:** Use status-text updates (`Node: PM_Refining`) instead of empty progress circles.
 *   ❌ **No "Chatbot" Bubbles:** The Strategy Room should look like a structured log or a multi-pane dashboard, not a WhatsApp thread.
 *   ❌ **No Hidden Rewrites:** The user must see the "Consistency Injections" being applied so they understand *why* the AI is refusing or adhering to specific architectural choices.
+
+## 6. Mission Control Layout for the Strategy Room
+
+The Strategy Room should feel like a mission-control dashboard rather than three chat panes. The layout is organized into a high-density operational surface that supports realtime streaming, decision visibility, and targeted editing.
+
+### 6.1 Core Areas
+- **Top Bar:** Displays the blueprint title, current lifecycle state, iteration count, and a convergence meter.
+- **Left Rail:** Shows the agent activity timeline, node status, and current active agent.
+- **Center Panel:** Streams the live debate and highlights the latest agent contribution with a compact status banner.
+- **Right Rail:** Contains the decision inspector, dependency graph, and conflict banner.
+- **Bottom Dock:** Shows generation progress, version history, and the active editing target.
+
+### 6.2 Specials
+- **Agent Activity Timeline:** A vertical event stream that records each node start, completion, and error in time order.
+- **Decision Timeline:** A chronological list of accepted, pending, and superseded decisions so the user can inspect how the blueprint evolved.
+- **Dependency Graph:** A compact graph view showing how a change in one decision influences others.
+- **Generation Progress:** Visual progress for each section and the overall blueprint lifecycle.
+- **Conflict Banner:** A persistent alert that appears when the current proposal conflicts with an existing decision.
+- **Decision Inspector:** A side panel that reveals the rationale, owner, and dependencies of the currently selected decision.
+- **Node Status:** Each agent badge should show state such as `idle`, `thinking`, `waiting`, `complete`, or `error`.
+- **Streaming Indicators:** The active node should animate with a subtle pulse and show the current token throughput or activity marker.
+
+This layout keeps the experience feeling technical and operational while still remaining approachable for a portfolio audience.

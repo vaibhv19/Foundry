@@ -89,3 +89,93 @@ It is critical to distinguish Foundry’s Consistency Engine from a standard RAG
 | **Goal** | Technical Accuracy. | Architectural Integrity. |
 
 **Foundry is not "searching" for answers; it is "remembering" its commitments.** While Phoenix provides a window into external knowledge, Foundry provides a mirror to the system's own logical state. This structured approach ensures that Section 10 of a blueprint will always respect the foundations laid in Section 1.
+
+## 7. Decision Definition and Governance
+
+Not every statement in the blueprint becomes a decision. A decision is only recorded when it is a durable commitment that constrains future edits.
+
+### Decision Categories
+- **Market**: target customer, pricing model, growth assumptions.
+- **Product**: feature priority, user persona, release scope.
+- **Technical**: database choice, backend framework, deployment model, cloud provider, authentication strategy.
+- **Business**: revenue model, budget constraints, operational boundaries.
+
+### Examples of Decisions
+- `primary_database`: PostgreSQL
+- `backend_framework`: Django
+- `authentication`: JWT-based authentication
+- `pricing_model`: Freemium subscription
+- `target_customer`: B2B SaaS operators
+- `deployment_model`: Docker Compose for v1
+- `cloud_provider`: AWS for v1, with Azure as a future migration target
+
+### Extraction Rules
+A statement becomes a decision when it meets one or more of the following conditions:
+1. It defines a concrete technology, framework, or platform.
+2. It establishes a stable operating constraint such as budget, scale, or compliance.
+3. It defines a core audience or business model that the rest of the blueprint should respect.
+4. It constrains future regeneration in a way that would otherwise produce contradictions.
+
+### Commitment Threshold
+The system should not record every opinion. A statement becomes a decision only when the agent presents it as a commitment rather than a tentative suggestion. If the wording is still speculative, it should remain in the conversation memory rather than the decision memory.
+
+### Decision Priority
+Every decision is assigned a priority:
+- **P0**: Must not be violated without explicit user override.
+- **P1**: Strong constraint that should be preserved unless a high-impact change is requested.
+- **P2**: Preference or recommendation that can be revisited during regeneration.
+
+### Decision Lifespan
+- A decision remains active until it is superseded, explicitly overridden, or invalidated by a dependency change.
+- Short-lived tactical preferences should remain in the conversation memory and should not bloat the decision log.
+
+### Decision Ownership
+Each decision is owned by the persona that introduced it and tagged with the relevant source node.
+- Investor-owned decisions usually cover business viability and budget.
+- PM-owned decisions usually cover scope and user experience.
+- Tech Lead-owned decisions usually cover implementation architecture.
+
+### Decision Dependencies
+A dependency exists when changing one decision would materially affect another. For example:
+```text
+primary_database
+  ↓
+orm_layer_or_orm
+  ↓
+deployment_model
+  ↓
+scaling_strategy
+```
+
+These dependencies are stored as edges in the decision graph. When one decision is changed, the engine can identify the downstream decisions that may need review.
+
+### What Should Not Become a Decision
+The following should remain conversational or section-local content rather than being promoted to a decision:
+- One-off wording choices or stylistic preferences.
+- Short-lived experiments that do not constrain the blueprint.
+- Temporary trade-off notes that are meant to be revisited in the next debate round.
+- Repeated suggestions that have not been accepted as a committed direction.
+
+## 8. Dependency Tracking & Impact Analysis
+
+The decision graph is not a flat list. It is a small dependency graph used for impact analysis before regeneration.
+
+### Dependency Graph Model
+- Each decision node can have zero or more parents and zero or more children.
+- A parent decision constrains a child decision; a child may inherit or depend on the parent.
+- The runtime uses the graph to propagate a change and determine which sections might need re-generation.
+
+### Impact Analysis
+When a decision changes, the engine evaluates:
+1. Which other decisions depend on it.
+2. Which sections are affected by the dependency chain.
+3. Whether the current blueprint should be regenerated in full or partially.
+
+### Conflict Propagation
+If a decision is overridden, the engine propagates the conflict to any dependent decisions and surfaces a warning in the UI before continuing.
+
+### Override Flow
+1. User or agent proposes an override.
+2. The system validates the requested change against the active decision graph.
+3. If the override is accepted, the old decision is marked superseded and the new one becomes active.
+4. Any dependent decisions are marked for review, and the regeneration workflow is triggered accordingly.

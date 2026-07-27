@@ -69,6 +69,20 @@ Converts the reviewed, finalized blueprint into clean markdown or a portable doc
 - The decision log for a blueprint is inspectable and human-readable, not just an internal implementation detail
 - Repo quality matches [[Phoenix]] and [[Trajectory]]: root README, per-module READMEs, a `Docs/` folder, a `Docs/Learning/` knowledge base, and a final Phase 11 Documentation & Audit pass
 
+## 8.1 Strategy Room Debate Model
+
+The Strategy Room is no longer treated as a single linear handoff. It is a structured multi-agent debate with explicit rounds, state evolution, and convergence logic.
+
+- Round 1: Investor reviews business viability and establishes value, budget, and risk constraints.
+- Round 2: Product Manager proposes product strategy, prioritization, and user-facing scope.
+- Round 3: Tech Lead evaluates feasibility, cost, and technical trade-offs against the PM proposal.
+- Round 4+: The Investor may challenge the technical cost of the proposal, the PM may revise features, and the Tech Lead may negotiate trade-offs until the state converges.
+- The debate continues until either the agents reach convergence or the system hits a configured maximum iteration count.
+- Convergence is achieved when the key decisions are stable across agents and no unresolved conflicts remain in the shared state.
+- If the debate fails to converge, a tie-breaking strategy is applied: the Tech Lead proposes the lowest-risk implementation path while the Investor and PM review the cost/fit trade-off one final time before the blueprint is marked ready for editing.
+
+The shared state evolves across each round: the idea remains fixed, but the message history, agent outputs, constraints, conflicts, decisions, and confidence scores are all updated after every turn. The system preserves this state so a later regeneration can reason over the full debate history rather than only the latest utterance.
+
 ## 9. Assumptions & Constraints
 
 - LLM calls are the long-pole latency item — Celery + Channels exist specifically because a synchronous request/response cycle can't hold a debate open for tens of seconds
