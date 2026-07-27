@@ -4,7 +4,7 @@
 
 **Foundry** (Smart Start-up Blueprint Generator) is a multi-agent AI system that turns a single-paragraph startup idea into a structured, editable startup blueprint. Three AI personas — an Investor, a Product Manager, and a Tech Lead — debate the idea autonomously and converge on a roadmap covering market positioning, product scope, and technical architecture.
 
-The system's core differentiator is not the debate itself (multi-agent debate is now a common pattern) but what happens **after** the first draft: a **Decision Memory & Consistency Engine** that remembers *why* each choice was made and enforces that reasoning across every later edit.
+The system's core differentiator is not the debate itself (multi-agent debate is now a common pattern) but what happens **after** the first draft: a **Decision Memory Engine** that remembers *why* each choice was made and enforces that reasoning across every later edit.
 
 ## 2. Problem Statement
 
@@ -19,7 +19,7 @@ Foundry is a portfolio project, not a commercial product. It's built to demonstr
 
 Primary resume tracks: Python/Django Backend, AI Engineer, Full Stack (Django + React).
 
-## 4. Core Differentiator: Decision Memory & Consistency Engine
+## 4. Core Differentiator: Decision Memory Engine
 
 - Every key choice the agents make is stored as a **structured decision log entry** (e.g. "chose PostgreSQL because the data model is relational") — not the raw generated prose, but the extractable reasoning behind it.
 - When a user asks to rewrite or regenerate any section, the engine retrieves relevant past decisions and injects them into the regeneration prompt.
@@ -30,7 +30,7 @@ Primary resume tracks: Python/Django Backend, AI Engineer, Full Stack (Django + 
 ## 5. Core Features
 
 ### 5.1 The Strategy Room
-Takes one user paragraph (the idea) and runs an autonomous multi-agent debate (AI Investor, AI PM, AI Tech Lead) to produce a comprehensive startup roadmap.
+Takes one user paragraph (the idea) and runs an iterative multi-agent debate: Investor → PM → Tech Lead → Consistency Check. The loop repeats until the state converges or the maximum iteration count is reached, then a tie-break step completes the blueprint.
 
 ### 5.2 Async Token Streaming
 Real-time, letter-by-letter generation over WebSockets so the user watches the debate unfold instead of staring at a loading spinner during long-running multi-agent generation.
@@ -50,7 +50,7 @@ Converts the reviewed, finalized blueprint into clean markdown or a portable doc
 - Data model: `Idea → Blueprint → Sections → Versions`
 - Celery + Redis for async multi-agent generation (the debate takes real wall-clock time and must not block the request thread)
 - Django Channels (ASGI) for real-time token streaming to the client
-- Job status tracking: `queued → generating → ready`
+- Blueprint lifecycle tracking: `DRAFT → QUEUED → GENERATING → PARTIALLY_GENERATED → READY → EDITING → EXPORTING → ARCHIVED → FAILED → DELETED`
 - Per-user/per-tier usage rate limiting
 - File storage for exports
 - "My Blueprints": list, search, and permissions, scoped per user
@@ -86,4 +86,4 @@ The shared state evolves across each round: the idea remains fixed, but the mess
 ## 9. Assumptions & Constraints
 
 - LLM calls are the long-pole latency item — Celery + Channels exist specifically because a synchronous request/response cycle can't hold a debate open for tens of seconds
-- The Decision Memory engine only needs to reason over *this blueprint's* own history — it is explicitly not a general-purpose RAG system and should not be built like one
+- The Decision Memory Engine only needs to reason over *this blueprint's* own history — it is explicitly not a general-purpose RAG system and should not be built like one

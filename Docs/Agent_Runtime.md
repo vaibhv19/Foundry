@@ -15,6 +15,8 @@ The agent runtime is responsible for:
 
 The runtime is intentionally separated from the web layer so that the debate can continue independently of the user's browser connection.
 
+Foundry has three related but distinct state machines: the blueprint lifecycle, the job lifecycle, and the agent runtime lifecycle. The blueprint lifecycle governs the document itself, the job lifecycle governs scheduling, and the agent runtime lifecycle governs the execution of a specific run.
+
 ---
 
 ## 2. Core Runtime Components
@@ -68,7 +70,7 @@ A run can exist in the following operational states:
 - `FAILED`: the run ended in an unrecoverable error
 
 These states are distinct from the blueprint lifecycle states in [Design.md](Design.md), although they are related and often updated together.
-
+The runtime state for an active debate is held in LangGraph checkpoints while the durable view of decisions, events, and versions is stored in PostgreSQL. Redis is used for queueing and WebSocket fan-out rather than as the source of truth.
 ---
 
 ## 6. Streaming and Progress Events

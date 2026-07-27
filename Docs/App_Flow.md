@@ -1,6 +1,6 @@
 # App Flow & Execution Lifecycles: Foundry
 
-This document outlines the user journeys, data orchestration, and execution lifecycles for **Foundry**. It details how a single-paragraph idea evolves into a multi-dimensional startup blueprint through an autonomous multi-agent debate and how the **Decision Memory & Consistency Engine** maintains architectural integrity during edits.
+This document outlines the user journeys, data orchestration, and execution lifecycles for **Foundry**. It details how a single-paragraph idea evolves into a multi-dimensional startup blueprint through an autonomous multi-agent debate and how the **Decision Memory Engine** maintains architectural integrity during edits.
 
 ---
 
@@ -9,8 +9,8 @@ This document outlines the user journeys, data orchestration, and execution life
 This flow tracks the transition from a raw idea to a structured, version-controlled blueprint via an asynchronous multi-agent state graph.
 
 1.  **Submission:** User enters a one-paragraph startup idea into the Strategy Room interface (React).
-2.  **Ingestion:** Frontend sends the idea to `POST /api/blueprints/generate` (React → Django).
-3.  **Initialization:** Django creates an `Idea` record and a `Blueprint` record with status `QUEUED` (Django → PostgreSQL).
+2.  **Ingestion:** Frontend sends the idea to `POST /api/v1/blueprints/` (React → Django).
+3.  **Initialization:** Django creates an `Idea` record and a `Blueprint` record with lifecycle state `QUEUED` (Django → PostgreSQL).
 4.  **Handoff:** Django triggers the `run_strategy_debate` task via Celery and returns the `blueprint_id` (Django → Celery).
 5.  **Socket Connection:** Frontend opens a WebSocket connection to the Blueprint's stream channel (React → Django Channels).
 6.  **Debate Startup:** Celery worker updates Blueprint status to `GENERATING` and initializes the LangGraph state graph (Celery).
@@ -21,7 +21,7 @@ This flow tracks the transition from a raw idea to a structured, version-control
 11. **Token Streaming:** As nodes generate content, raw tokens are pushed in real-time to the user's screen (Celery → Channels → React).
 12. **Convergence:** The "Consistency Check" node verifies there are no obvious contradictions between the three personas (LangGraph/AI).
 13. **Finalization:** Celery worker creates the initial `Sections` and `Versions` (v1) for the blueprint and sets status to `READY` (Celery → PostgreSQL).
-14. **Completion:** Frontend receives the `JOB_READY` signal and transitions from the "Streaming" view to the "Document Canvas" (Channels → React).
+14. **Completion:** Frontend receives the `COMPLETE` event and transitions from the "Streaming" view to the "Document Canvas" (Channels → React).
 
 ---
 
@@ -42,7 +42,7 @@ This flow handles the rendering and exploration of the finalized multi-agent out
 This flow demonstrates Foundry's core differentiator: ensuring that targeted edits do not introduce contradictions with previously established decisions.
 
 1.  **Selection:** User highlights a specific section (e.g., "Database Architecture") and enters a rewrite request or a specific note (React).
-2.  **Edit Request:** Frontend sends the section ID and user instructions to `POST /api/sections/{id}/regenerate` (React → Django).
+2.  **Edit Request:** Frontend sends the section ID and user instructions to `POST /api/v1/sections/{id}/regenerate/` (React → Django).
 3.  **Memory Retrieval (Decision Memory):** The engine queries the `DecisionLog` for this blueprint, specifically retrieving choices made in *other* sections that constrain this one (Django → PostgreSQL).
     *   *Example: If the "Market" section decided on "High-frequency financial transactions," the engine retrieves this to ensure the "Tech" rewrite doesn't switch to a slow eventual-consistency DB.*
 4.  **Prompt Injection:** Django constructs a "Consistency Prompt" containing the user's request + the retrieved decision logs + the existing section context (Django).

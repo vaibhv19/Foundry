@@ -4,16 +4,16 @@
 
 - **Framework**: Django + Django REST Framework for standard CRUD (auth, blueprints, sections, exports)
 - **Async task queue**: Celery + Redis (broker + result backend) — runs the multi-agent debate off the request thread, since a full debate takes real wall-clock time
-- **Real-time layer**: Django Channels (ASGI) — streams tokens to the client as they're generated and pushes job-status transitions (`queued → generating → ready`)
+- **Real-time layer**: Django Channels (ASGI) — streams tokens to the client as they're generated and pushes blueprint lifecycle transitions (`DRAFT → QUEUED → GENERATING → PARTIALLY_GENERATED → READY → EDITING → EXPORTING → ARCHIVED → FAILED → DELETED`)
 - **Auth**: Django's built-in auth + DRF token or JWT (simple session/token auth is enough; this isn't the project meant to showcase auth depth — that's [[Trajectory]]'s job)
 - **DB**: PostgreSQL — relational fit for `Idea → Blueprint → Sections → Versions` plus the decision log table, which is itself relational (decision → blueprint → section it applies to)
 
 ## 2. AI / Agent Layer — Python
 
 - **Orchestration**: LangGraph, modeling the debate as an explicit state graph rather than a chain of prompt strings:
-  - `Investor` node → `Product Manager` node → `Tech Lead` node → `Consistency Check` node, looping until the agents converge or a turn limit is hit
+  - `Investor` → `Product Manager` → `Tech Lead` → `Consistency Check`, repeating until convergence or the configured iteration limit, then applying a tie-break if needed
   - The Consistency Check node is where Decision Memory retrieval happens — it's a first-class graph node, not something bolted onto a prompt template
-- **LLM provider**: single provider (Gemini via AI Studio), called through a thin internal wrapper class — deliberately not a multi-provider abstraction, since that's the differentiator [[Conclave]] already owns in the portfolio
+- **LLM provider**: `LLMService` is the application-facing abstraction; `GeminiProvider` is the v1 implementation, and future providers can implement the same interface without changing the graph orchestration
 - **Streaming**: LangGraph node output streamed token-by-token, forwarded to the client through the Channels consumer
 
 ## 3. Frontend — React

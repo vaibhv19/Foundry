@@ -1,6 +1,8 @@
 # Prompt Architecture — Foundry
 
-This document defines the prompt design for the Strategy Room, the Decision Memory engine, and the regeneration workflow. It intentionally keeps the prompt stack structured and auditable rather than relying on a single monolithic instruction block.
+This document defines the prompt design for the Strategy Room, the Decision Memory Engine, and the regeneration workflow. It intentionally keeps the prompt stack structured and auditable rather than relying on a single monolithic instruction block.
+
+The runtime uses `LLMService` as the application-facing abstraction, with `GeminiProvider` implemented for v1 and future providers added through the same interface.
 
 ---
 

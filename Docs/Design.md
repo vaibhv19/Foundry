@@ -1,6 +1,6 @@
 # DESIGN.md — Foundry System Architecture
 
-This document defines the technical architecture of **Foundry**. It details how the system orchestrates multi-agent state machines, manages asynchronous execution, and implements the **Decision Memory & Consistency Engine** to ensure structural integrity across blueprint versions.
+This document defines the technical architecture of **Foundry**. It details how the system orchestrates multi-agent state machines, manages asynchronous execution, and implements the **Decision Memory Engine** to ensure structural integrity across blueprint versions.
 
 ---
 
@@ -10,12 +10,12 @@ Foundry is built as a distributed asynchronous system, separating the high-laten
 
 *   **Django API (Web Layer):** A DRF-based REST API that manages users, blueprint metadata, and section versioning. It acts as the gateway for triggering long-running agent tasks.
 *   **Celery Workers (Agent Runtime):** The execution environment for the LangGraph state graph. These workers run the autonomous multi-agent debate off the request thread.
-*   **Django Channels (Streaming Layer):** An ASGI-based WebSocket layer that streams real-time LLM tokens and job status updates (`queued → generating → ready`) to the frontend.
+*   **Django Channels (Streaming Layer):** An ASGI-based WebSocket layer that streams real-time LLM tokens and blueprint lifecycle updates to the frontend.
 *   **Redis (Orchestration Backbone):** Serves two critical roles:
     1.  **Broker:** Handles message passing between Django and Celery.
     2.  **Channel Layer:** Backs the bi-directional WebSocket communication for live streaming.
 *   **PostgreSQL (Persistence Layer):** The source of truth for the `Blueprint` relational model, `Section` versions, and the structured `DecisionLog` entries.
-*   **Gemini Wrapper:** A minimalist internal class that provides a standardized interface for calling Google’s Gemini models with integrated error handling and streaming support.
+*   **LLMService / GeminiProvider:** The application-facing abstraction for model calls, with `GeminiProvider` implemented for v1 and future providers added through the same interface.
 *   **LangGraph Agent Process:** A state-machine-based orchestration layer that manages the "Strategy Room" debate, ensuring agents follow a defined turn-order and shared state.
 
 ---
@@ -23,19 +23,19 @@ Foundry is built as a distributed asynchronous system, separating the high-laten
 ## 2. Request Lifecycles
 
 ### 2.1 Initial Blueprint Generation
-1.  **Trigger:** React sends a startup idea to the API. Django creates a `Blueprint` record with `status=QUEUED`.
+1.  **Trigger:** React sends a startup idea to the API. Django creates a `Blueprint` record with lifecycle state `QUEUED`.
 2.  **Dispatch:** Django pushes a task to Celery and returns a `202 Accepted` response.
 3.  **Connection:** React establishes a WebSocket connection using the returned `blueprint_id`.
-4.  **Execution:** The Celery worker initializes the LangGraph. As the **Investor**, **PM**, and **Tech Lead** nodes process, they emit tokens.
+4.  **Execution:** The Celery worker initializes the LangGraph. The **Investor**, **PM**, **Tech Lead**, and **Consistency Check** nodes process in iterative rounds until convergence or the configured iteration limit. If needed, a tie-break step completes the debate.
 5.  **Stream:** The worker sends tokens to the Redis Channel Layer. Django Channels forwards these to the React client.
 6.  **Persistence:** Upon convergence, the worker saves the extracted sections and initial decisions to PostgreSQL and marks the blueprint as `READY`.
 
 ### 2.2 Section Regeneration (Consistency-Enforced)
 1.  **Trigger:** User requests a rewrite of a specific section in the Document Canvas.
-2.  **Retrieval:** Django queries the `DecisionLog` for all decisions associated with the parent blueprint.
-3.  **Dispatch:** Django sends the rewrite request *plus* the relevant Decision Log context to a Celery task.
-4.  **Enforcement:** The task runs a single-agent "Refiner" node. The prompt is strictly constrained by the retrieved decisions (e.g., "Rewrite the Tech Stack, but you must keep PostgreSQL as decided in the initial generation").
-5.  **Output:** The new section version is saved to the DB and pushed to the UI via WebSockets.
+2.  **Retrieval:** Django queries the `Decision Log` for all decisions associated with the parent blueprint.
+3.  **Dispatch:** Django sends the rewrite request *plus* the relevant decision context to a Celery task.
+4.  **Enforcement:** The task runs the relevant agent or agents for the affected section. A change limited to implementation detail may require only the Tech Lead; a change that affects product scope or business viability may require PM and Investor as well. The Consistency Check node runs after the targeted regeneration to confirm that the proposal still respects the active decision graph.
+5.  **Output:** The new section version is saved to the DB, the relevant decisions are updated or superseded as needed, and the update is pushed to the UI via WebSockets.
 
 ---
 
@@ -46,9 +46,18 @@ The "Strategy Room" is modeled as an explicit state graph to move beyond simple 
 ### The State Object
 The shared state passed between nodes includes:
 *   `idea`: The original user prompt.
-*   `sections`: A dictionary of generated content per agent (Market, Product, Tech).
-*   `decisions`: A list of structured choices extracted from agent output.
-*   `turn_count`: An integer to prevent infinite debate loops.
+*   `messages`: The transcript of the debate so far.
+*   `agent_outputs`: The structured output emitted by each agent node.
+*   `debate_history`: The round-by-round history of proposals and responses.
+*   `constraints`: Current business, product, and technical constraints.
+*   `conflicts`: Newly discovered conflicts needing resolution.
+*   `resolved_conflicts`: Previously resolved conflicts and the chosen resolution.
+*   `decisions`: The current active decision set.
+*   `pending_decisions`: Proposals that have not yet been committed.
+*   `current_agent`: The agent currently executing.
+*   `confidence_scores`: Confidence values used to decide whether to continue debating or force convergence.
+*   `iteration_count`: The current round number.
+*   `blueprint_context`: The evolving document state and version pointers.
 
 ### The Nodes
 1.  **`Investor`**: Evaluates the idea's commercial feasibility. Establishes budget/market constraints.
@@ -65,7 +74,7 @@ The graph terminates when:
 
 ## 4. Decision Memory Architecture
 
-The **Decision Memory & Consistency Engine** is the core differentiator of Foundry. It prevents "Architectural Drift" during long-term editing.
+The **Decision Memory Engine** is the core differentiator of Foundry. It prevents "Architectural Drift" during long-term editing.
 
 ### The Decision Log
 Unlike a RAG system that searches external PDFs, Foundry searches its own history. Every key choice made by an agent is stored in the `DecisionLog` table:
@@ -116,7 +125,7 @@ The shared state in the Strategy Room is now a first-class architecture artifact
 | `decisions` | Holds the active, committed decisions that should govern regeneration. | Consolidated after each round and used as the authoritative decision set. |
 | `pending_decisions` | Tracks proposals that need review before becoming active. | Cleared as decisions are approved, rejected, or superseded. |
 | `current_agent` | Indicates which agent is currently executing in the graph. | Moves forward with each node transition and is exposed to the UI for status streaming. |
-| `confidence_scores` | Stores the confidence of each agent or the graph as a whole for key decisions. | Updated after each turn; used to decide whether to continue debating or force convergence. |
+| `confidence_scores` | Stores the confidence of each agent or the graph as a whole for key decisions. | Updated after each turn and used to decide whether the debate should continue or be forced to a tie-break and completion. |
 | `iteration_count` | Counts how many debate rounds have completed. | Incremented after every round and used for the turn limit enforcement. |
 | `blueprint_context` | Holds the evolving blueprint section draft, metadata, and references to prior versions. | Updated as sections are generated and later re-generated. |
 

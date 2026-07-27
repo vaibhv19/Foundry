@@ -53,38 +53,18 @@ This document defines the API contracts for the **Foundry** system. It covers th
 - **Auth:** Token passed via query string: `?token=<jwt_token>`
 - **Scope:** One connection per blueprint session.
 
-### 2. Message Schemas (Server → Client)
-
-#### Type: `status_update`
-Sent when the Celery worker transitions the job state.
-```json
-{
-  "type": "status_update",
-  "status": "QUEUED | GENERATING | READY",
-  "message": "Investor is analyzing market viability..."
-}
-```
-
-#### Type: `token_stream`
-Real-time, letter-by-letter generation from the active LangGraph node.
-```json
-{
-  "type": "token_stream",
-  "node": "Investor | Product_Manager | Tech_Lead",
-  "content": "string", // The incremental token text
-  "is_final": boolean
-}
-```
-
-#### Type: `error`
-Sent if the LLM or graph execution fails.
-```json
-{
-  "type": "error",
-  "code": "LLM_TIMEOUT | CONSISTENCY_VIOLATION",
-  "message": "The Tech Lead could not reconcile the budget with the feature set."
-}
-```
+### 2. Event Contract
+The WebSocket transport uses the canonical event names documented in [WebSocket_Protocol.md](WebSocket_Protocol.md). The frontend should treat the following as the authoritative event types:
+- `JOB_CREATED`
+- `NODE_STARTED`
+- `NODE_COMPLETED`
+- `NODE_FAILED`
+- `TOKEN`
+- `STATUS`
+- `HEARTBEAT`
+- `DEBUG`
+- `COMPLETE`
+- `ERROR`
 
 ---
 
@@ -181,4 +161,4 @@ The client may also send control messages over the same WebSocket channel.
 Foundry uses standard HTTP codes:
 - `403 Forbidden`: User attempting to access a blueprint they do not own.
 - `409 Conflict`: Attempting to regenerate a section while the blueprint is still in a `GENERATING` state.
-- `422 Unprocessable Entity`: The AI could not find a consistent path forward (used for the Consistency Engine's stretch goal).
+- `422 Unprocessable Entity`: The AI could not find a consistent path forward (used for the Decision Memory Engine's conflict workflow).

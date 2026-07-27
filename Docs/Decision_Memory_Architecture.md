@@ -1,6 +1,6 @@
-# Decision Memory & Consistency Engine: Architecture
+# Decision Memory Engine: Architecture
 
-This document defines the technical architecture for **Foundry’s Decision Memory & Consistency Engine**. It is designed to solve the problem of "Architectural Drift"—a phenomenon in LLM applications where targeted edits to one part of a complex document lead to logical contradictions in another (e.g., a "Product" section assuming high-scale B2C while a "Tech" section optimizes for low-concurrency B2B).
+This document defines the technical architecture for **Foundry’s Decision Memory Engine**. It is designed to solve the problem of "Architectural Drift"—a phenomenon in LLM applications where targeted edits to one part of a complex document lead to logical contradictions in another (e.g., a "Product" section assuming high-scale B2C while a "Tech" section optimizes for low-concurrency B2B).
 
 ---
 
@@ -42,7 +42,7 @@ When a user requests a regeneration of a specific section (Flow 3 in `App_Flow.m
 
 ### The Retrieval Mechanism:
 1.  **Scope:** The engine executes a SQL query: `SELECT * FROM decision_log WHERE blueprint_id = :id AND is_active = TRUE`.
-2.  **Context Construction:** The retrieved rows are formatted into a markdown-styled "Consistency Block":
+2.  **Context Construction:** The retrieved rows are formatted into a markdown-styled "Decision Memory Block":
     ```markdown
     ### IMMUTABLE DESIGN CONSTRAINTS
     - [TECH_STACK] primary_database: PostgreSQL (Rationale: ACID compliance)
@@ -56,12 +56,12 @@ When a user requests a regeneration of a specific section (Flow 3 in `App_Flow.m
 
 ### Enforcement Mechanism
 The regeneration prompt uses **Hard Constraint Instruction**:
-> "You are rewriting the Architecture Section. You MUST adhere to the [IMMUTABLE DESIGN CONSTRAINTS] provided. If the user's new request violates an existing constraint, you must raise a CONFLICT_ERROR instead of generating text."
+> "You are rewriting the Architecture Section. You MUST adhere to the active Decision Log and Decision Graph provided. If the user's new request violates an existing constraint, you must raise a CONFLICT_ERROR instead of generating text."
 
 ### The Override Mechanism
 A user can deliberately override a past decision by using a **Manual Override Flag** in the UI or by using specific intent in their prompt (e.g., "Change the database to MongoDB").
-1.  **Detection:** If the LLM identifies a conflict between the `user_request` and the `IMMUTABLE_CONSTRAINTS`, it flags the specific `decision_key`.
-2.  **Resolution:** The backend creates a new `DecisionLog` entry with the updated value and sets `is_active = FALSE` on the superseded record.
+1.  **Detection:** If the LLM identifies a conflict between the `user_request` and the active constraints, it flags the specific `decision_key`.
+2.  **Resolution:** The backend creates a new `Decision Log` entry with the updated value and sets `is_active = FALSE` on the superseded record.
 3.  **Cascading Alert:** The UI notifies the user: *"Changing the Database to MongoDB may conflict with your earlier decision regarding ACID compliance in the Market section. Proceed?"*
 
 ---
@@ -72,13 +72,13 @@ Foundry detects conflicts before the LLM generates a single word. This is done t
 *   **Logical Equality:** `New_Proposal.Key == Stored_Decision.Key`
 *   **Value Divergence:** `New_Proposal.Value != Stored_Decision.Value`
 
-If both conditions are met, the **Consistency Engine** pauses the generation and requires an explicit "Override" signal from the user, ensuring no "silent contradictions" are introduced.
+If both conditions are met, the Decision Memory Engine pauses the generation and requires an explicit "Override" signal from the user, ensuring no "silent contradictions" are introduced.
 
 ---
 
 ## 6. Distinction: Decision Memory vs. RAG
 
-It is critical to distinguish Foundry’s Consistency Engine from a standard RAG (Retrieval-Augmented Generation) system like **Phoenix**.
+It is critical to distinguish Foundry’s Decision Memory Engine from a standard RAG (Retrieval-Augmented Generation) system like **Phoenix**.
 
 | Feature | Phoenix (RAG / Grounding) | Foundry (Memory / Consistency) |
 | :--- | :--- | :--- |
@@ -158,7 +158,7 @@ The following should remain conversational or section-local content rather than 
 
 ## 8. Dependency Tracking & Impact Analysis
 
-The decision graph is not a flat list. It is a small dependency graph used for impact analysis before regeneration.
+The Decision Graph is not a flat list. It is a small dependency graph used for impact analysis before regeneration.
 
 ### Dependency Graph Model
 - Each decision node can have zero or more parents and zero or more children.
