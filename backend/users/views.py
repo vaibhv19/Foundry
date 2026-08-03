@@ -30,18 +30,15 @@ class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except Exception as e:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        user = serializer.user
-        tokens = serializer.validated_data
-        return Response({
-            "token": {
-                "access": tokens['access'],
-                "refresh": tokens['refresh'],
-            },
-            "user": UserSerializer(user).data
-        }, status=status.HTTP_200_OK)
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == status.HTTP_200_OK:
+            tokens = response.data
+            user = User.objects.get(email=request.data.get('email'))
+            response.data = {
+                "token": {
+                    "access": tokens['access'],
+                    "refresh": tokens['refresh'],
+                },
+                "user": UserSerializer(user).data
+            }
+        return response

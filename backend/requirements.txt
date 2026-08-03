@@ -6,3 +6,5 @@ gunicorn
 uvicorn[standard]
 djangorestframework-simplejwt
 redis
+pytest
+pytest-django
