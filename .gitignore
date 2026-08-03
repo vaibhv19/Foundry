@@ -24,6 +24,8 @@ wheels/
 venv/
 ENV/
 *.log
+*.sqlite3
+db.sqlite3
 
 # Node / Vite
 node_modules/
