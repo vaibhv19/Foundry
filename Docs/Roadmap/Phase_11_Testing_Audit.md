@@ -121,29 +121,29 @@ Foundry/
 * **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 1.6
-* **Description**: Create root `README.md`. It must include: project overview, startup debate description, repository directory layout (`backend/` + `frontend/`), and step-by-step local launch instructions using Docker Compose. It must intentionally exclude any cloud deployment or CI/CD pipelines sections, keeping scope boundaries clean.
-* **Definition of Done**: Root `README.md` exists and contains correct layout maps and Compose launch instructions.
+* **Description**: Create root `README.md` with: project overview, startup debate description, repository monorepo directory layout (`backend/` + `frontend/`), and step-by-step local launch instructions using Docker Compose. It must intentionally exclude any cloud deployment or CI/CD pipelines sections.
+* **Definition of Done**: A file literally named `README.md` is created in the repository's root directory (`Foundry/README.md`) containing the project overview, monorepo layout, and Docker Compose launch instructions, with no deployment section.
 
 ### Task 11.8: Create backend/README.md
 * **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.4, Task 7.8
 * **Description**: Create `backend/README.md` documenting: Django and DRF configuration structures, local virtualenv installations, environment variables details, Celery background worker daemon startup, local testing steps via pytest, and commands to run the LangGraph agent layer locally from the Django shell.
-* **Definition of Done**: `backend/README.md` is populated with setup, environment mapping, testing, and runtime instructions.
+* **Definition of Done**: A file literally named `README.md` is created in the `backend/` subdirectory (`backend/README.md`) detailing Django setup, environment variables, Celery worker startup, LangGraph agent execution, and testing commands.
 
 ### Task 11.9: Create frontend/README.md
 * **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 9.1, Task 10.10
 * **Description**: Create `frontend/README.md` documenting: React structure, npm packages list, environment variables configs, dev server runtime commands (`npm run dev`), and WebSocket connection management configuration details.
-* **Definition of Done**: `frontend/README.md` exists and contains full installation, environment setup, and runtime instructions.
+* **Definition of Done**: A file literally named `README.md` is created in the `frontend/` subdirectory (`frontend/README.md`) detailing React setup, environment variables, dev server commands, and WebSocket client configurations.
 
 ### Task 11.10: Create Docs/Learning/README.md
 * **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 11.11
 * **Description**: Create `Docs/Learning/README.md` acting as the master table of contents and navigation index mapping out all 11 detailed knowledge base files generated during the build.
-* **Definition of Done**: Master map index file exists and lists active links to all deep-dive files.
+* **Definition of Done**: A file literally named `README.md` is created in the `Docs/Learning/` subdirectory (`Docs/Learning/README.md`) acting as the table of contents and master index map of the knowledge base.
 
 ### Task 11.11: Write and Review Docs/Learning/ Files
 * **Size**: L
@@ -161,7 +161,7 @@ Foundry/
   - Final folder directory layout matches planning models.
   - Build succeeds without errors.
   - All unit, integration, and E2E specs pass successfully.
-* **Definition of Done**: Checklist passes, and code is clean of all diagnostic debris.
+* **Definition of Done**: Final code audit checklist is completed verifying that no placeholder/mock code remains, the folder layout matches the planning documents, the build succeeds, and all tests pass.
 
 ---
 
