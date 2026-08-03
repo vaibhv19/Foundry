@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to construct the Strategy Room debate engine using LangGraph. We will define the comprehensive shared graph state, build the individual persona nodes (Investor, Product Manager, Tech Lead, Consistency Check, and Tie-Breaker), configure prompt compilation pipelines, implement token budgeting controls, and wire the turn-taking state machine using conditional routing logic based on convergence analysis.
 
+## Why This Phase Comes Now
+The multi-agent LangGraph debate state machine must be built first because the Decision Memory Engine depends on extracting structured decisions from the runtime outputs of these agent debates.
+
 ---
 
 ## Folder Structure
@@ -100,21 +103,21 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 5.1: Add LangGraph Dependency
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 4.1
 * **Description**: Add `langgraph` package to `backend/requirements.txt` and install.
 * **Definition of Done**: LangGraph library modules load without exceptions in the backend.
 
 ### Task 5.2: Create State definition schema
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 5.1
 * **Description**: Create file `foundry_backend/strategy_room/state.py`. Define `StrategyRoomState` class using python standard `TypedDict`. Include all 13 fields listed in the design.
 * **Definition of Done**: Schema is declared and can be imported.
 
 ### Task 5.3: Define Base Persona System Prompts
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 4.3
 * **Description**: Implement system prompt instructions in `strategy_room/prompts.py` for `Investor`, `PM`, `Tech Lead`, `Consistency Check`, and `Tie-Breaker`. Structure prompts in hierarchical layers as defined in [Prompt_Architecture.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Prompt_Architecture.md).
@@ -159,7 +162,7 @@ backend/
 * **Definition of Done**: Node returns state clearing active conflicts.
 
 ### Task 5.9: Assemble Graph Routing Logic and Compile State Machine
-* **Size**: M
+* **Size**: L
 * **Risk**: High
 * **Prerequisites**: Task 5.8
 * **Description**: Write `strategy_room/graph.py`. Initialize `StateGraph(StrategyRoomState)`. Add all 5 nodes. Define edges:
@@ -181,7 +184,7 @@ backend/
 * **Definition of Done**: Runner executes complete loop on mocking.
 
 ### Task 5.11: Write Graph Execution Unit Tests
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 5.10
 * **Description**: Write pytest test suite for the graph. Mock Gemini provider to return pre-defined strings and structured schemas. Verify:
@@ -199,14 +202,42 @@ backend/
 
 ---
 
-## Suggested Git Commits
-- `feat/ai/graph-state`: LangGraph state schema definition.
-- `feat/ai/graph-prompts`: Persona-specific system instruction blocks.
-- `feat/ai/graph-nodes`: Investor, PM, Tech Lead node actions.
-- `feat/ai/graph-consistency`: Consistency check and tie-breaker nodes.
-- `feat/ai/graph-compile`: Graph assembly and conditional routing compilation.
-- `feat/ai/graph-runner`: GraphRunner setup orchestrator.
-- `test/ai/graph-runtime`: Graph routing integration tests.
+## Developer Validation Checklist
+- [ ] LangGraph package is installed and loads without exceptions in backend context.
+- [ ] `StrategyRoomState` TypedDict validates all 13 required state properties correctly.
+- [ ] Base prompts load static instructions from prompt architecture files.
+- [ ] Investor, Product Manager, and Tech Lead nodes update shared state and transition correctly.
+- [ ] Consistency check node correctly detects conflicts and increments loop counters.
+- [ ] Tie-breaker node overrides state to resolve conflicts after 5 loop iterations.
+- [ ] Compiled graph runs sequentially from START to END without infinite loops.
+- [ ] GraphRunner wrapper executes debate loops successfully against mock provider inputs.
+- [ ] Turn-taking integration tests pass on running pytest.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/ai/langgraph-orchestrator`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase05`
+* **Suggested Commit Grouping**:
+  - `feat/ai/graph-state`: LangGraph state schema definition
+  - `feat/ai/graph-prompts`: Persona system instruction blocks
+  - `feat/ai/graph-nodes`: Investor, PM, Tech Lead node actions
+  - `feat/ai/graph-consistency`: Consistency check and tie-breaker nodes
+  - `feat/ai/graph-compile`: Graph assembly and conditional routing compilation
+  - `feat/ai/graph-runner`: GraphRunner setup orchestrator
+  - `test/ai/graph-runtime`: Graph routing integration tests
 
 ---
 
@@ -217,5 +248,5 @@ backend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/05_LangGraph_Multi_Agent_Orchestration.md`**: Document agent state tracking, looping and negotiation designs, convergence checks, and tie-breaking algorithms.
+## Learning Document
+* **[05_LangGraph_Multi_Agent_Orchestration.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/05_LangGraph_Multi_Agent_Orchestration.md)**: Document agent state tracking, looping and negotiation designs, convergence checks, and tie-breaking algorithms. After completing this phase, document the multi-agent orchestration flows, state schema parameters, and loop convergence results.

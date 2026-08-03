@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to validate the reliability, security, and document completeness of the entire system. We will configure end-to-end integration tests using Playwright, perform load checks on the rate limiting middleware, verify ownership authorization rules across endpoints, and audit the complete `Docs/Learning/` deep-dive directory to ensure the repository meets portfolio-grade quality standards.
 
+## Why This Phase Comes Now
+Comprehensive end-to-end integration tests, rate limit audits, and learning documentation deep-dives are performed last to validate the completed, fully integrated multi-repository system.
+
 ---
 
 ## Folder Structure
@@ -63,14 +66,14 @@ Foundry/
 ## Atomic Implementation Tasks
 
 ### Task 11.1: Configure Playwright Test Package
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 10.12
 * **Description**: Create `e2e/` folder. Initialize npm configurations, install `@playwright/test`, and configure `playwright.config.js` to target localhost servers.
 * **Definition of Done**: Playwright suite runs locally.
 
 ### Task 11.2: Write E2E Test - Initial Generation
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 11.1
 * **Description**: Write `e2e/specs/initial_generation.spec.js`. Automates:
@@ -81,7 +84,7 @@ Foundry/
 * **Definition of Done**: Test executes successfully.
 
 ### Task 11.3: Write E2E Test - Conflict and Overrides
-* **Size**: M
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 11.2
 * **Description**: Write `e2e/specs/conflict_resolution.spec.js`. Automates:
@@ -91,7 +94,7 @@ Foundry/
 * **Definition of Done**: Test verifies complete conflict warning and override lifecycle.
 
 ### Task 11.4: Write E2E Test - Version Rollbacks
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 11.2
 * **Description**: Write `e2e/specs/version_rollback.spec.js`. Automates:
@@ -101,14 +104,14 @@ Foundry/
 * **Definition of Done**: Test verifies rollback updates screen values.
 
 ### Task 11.5: Perform Rate Limiter Stresstest
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 2.5
 * **Description**: Write shell script to send rapid parallel curl requests to auth and blueprints routes. Verify that HTTP 429 is returned once limits are reached.
 * **Definition of Done**: Script logs 429 responses.
 
 ### Task 11.6: Execute Multi-User Scoping Security Audit
-* **Size**: S
+* **Size**: XS
 * **Risk**: Medium
 * **Prerequisites**: Task 3.7
 * **Description**: Write integration test where User B attempts to trigger a GET, DELETE, or POST regeneration request on a Blueprint owned by User A. Assert that Django returns `403 Forbidden` for all cases.
@@ -118,25 +121,25 @@ Foundry/
 * **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 1.6
-* **Description**: Create root `README.md`. It must include: project overview, startup debate description, monorepo directory layout (`backend/` + `frontend/`), and step-by-step local launch instructions using Docker Compose. It must intentionally exclude any cloud deployment or CI/CD pipelines sections, keeping scope boundaries clean.
+* **Description**: Create root `README.md`. It must include: project overview, startup debate description, repository directory layout (`backend/` + `frontend/`), and step-by-step local launch instructions using Docker Compose. It must intentionally exclude any cloud deployment or CI/CD pipelines sections, keeping scope boundaries clean.
 * **Definition of Done**: Root `README.md` exists and contains correct layout maps and Compose launch instructions.
 
 ### Task 11.8: Create backend/README.md
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.4, Task 7.8
 * **Description**: Create `backend/README.md` documenting: Django and DRF configuration structures, local virtualenv installations, environment variables details, Celery background worker daemon startup, local testing steps via pytest, and commands to run the LangGraph agent layer locally from the Django shell.
 * **Definition of Done**: `backend/README.md` is populated with setup, environment mapping, testing, and runtime instructions.
 
 ### Task 11.9: Create frontend/README.md
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 9.1, Task 10.10
 * **Description**: Create `frontend/README.md` documenting: React structure, npm packages list, environment variables configs, dev server runtime commands (`npm run dev`), and WebSocket connection management configuration details.
 * **Definition of Done**: `frontend/README.md` exists and contains full installation, environment setup, and runtime instructions.
 
 ### Task 11.10: Create Docs/Learning/README.md
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 11.11
 * **Description**: Create `Docs/Learning/README.md` acting as the master table of contents and navigation index mapping out all 11 detailed knowledge base files generated during the build.
@@ -150,7 +153,7 @@ Foundry/
 * **Definition of Done**: All 11 markdown files exist and render properly in Markdown viewer.
 
 ### Task 11.12: Final Code Audit and Validation Checklist
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 11.3, Task 11.4, Task 11.11
 * **Description**: Run a complete codebase audit. Verify:
@@ -169,13 +172,42 @@ Foundry/
 
 ---
 
-## Suggested Git Commits
-- `feat/e2e/setup`: Install Playwright and create base configuration files.
-- `feat/e2e/specs-gen`: Write specs for registration and stream generation checks.
-- `feat/e2e/specs-conflict`: Write specs for conflicts, overrides, and rollback checks.
-- `test/security/rate-limits`: Auth rate checks and curl load verifiers.
-- `test/security/scoping`: Scope ownership checks.
-- `docs/learning-audit`: Complete documentation review.
+## Developer Validation Checklist
+- [ ] Playwright test package is configured and target URLs connect.
+- [ ] Initial generation E2E test runs and validates WebSocket streams and editor canvas loads.
+- [ ] Conflict warning E2E test verifies conflict alerts and manual overrides.
+- [ ] Version rollback E2E test asserts version selection and active content restore checks.
+- [ ] Rate limit test logs successfully verify HTTP 429 returns under heavy request volume.
+- [ ] Multi-user scoping tests confirm User B cannot access or mutate User A's blueprints.
+- [ ] Root README, backend README, and frontend README exist and document layouts.
+- [ ] Docs/Learning table of contents is complete and indexes all 11 knowledge deep-dives.
+- [ ] All 11 detailed learning document markdown files are reviewed and contain no stubs.
+- [ ] Project builds compile without errors and all automated pytest/Vitest/Playwright tests pass.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/test/e2e-audit`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase11`
+* **Suggested Commit Grouping**:
+  - `feat/e2e/setup`: Install Playwright and create base configuration files
+  - `feat/e2e/specs-gen`: Write specs for registration and stream generation checks
+  - `feat/e2e/specs-conflict`: Write specs for conflicts, overrides, and rollback checks
+  - `test/security/rate-limits`: Auth rate checks and curl load verifiers
+  - `test/security/scoping`: Scope ownership checks
+  - `docs/learning-audit`: Complete documentation review
 
 ---
 
@@ -184,5 +216,5 @@ Foundry/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/11_Testing_And_Security_Audit.md`**: Summary of E2E coverage results, rate limiting performance metrics, and database access authorization design.
+## Learning Document
+* **[11_Testing_And_Security_Audit.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/11_Testing_And_Security_Audit.md)**: Summary of E2E coverage results, rate limiting performance metrics, and database access authorization design. After completing this phase, document the Playwright test matrices, security rate auditing outputs, and multi-user verification checklists.

@@ -1,6 +1,6 @@
 # Foundry — Implementation Roadmap Index
 
-This document serves as the master catalog, architectural map, and sequence index for implementing **Foundry** (Smart Start-up Blueprint Generator). Foundry is a single monorepo structured with two logically independent layers: `backend/` (Django + Celery) and `frontend/` (React). 
+This document serves as the master catalog, architectural map, and sequence index for implementing **Foundry** (Smart Start-up Blueprint Generator). Foundry is structured with two logically independent repositories: `backend/` (Django + Celery) and `frontend/` (React), which are connected only through REST and WebSocket contracts.
 
 This index provides a comprehensive overview of the implementation sequence, module complexity, dependencies, cross-layer contracts, and milestone validations designed for a single developer working sequentially.
 
@@ -10,7 +10,7 @@ This index provides a comprehensive overview of the implementation sequence, mod
 
 Below are the direct links to the individual phase documents detailing the folder structures, class definitions, and atomic implementation tasks:
 
-1. **[Phase 01: Project Setup](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_01_Project_Setup.md)** — Core monorepo initialization, Docker Compose, and dev environment verification.
+1. **[Phase 01: Project Setup](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_01_Project_Setup.md)** — Core project setup, Docker Compose, and dev environment verification.
 2. **[Phase 02: Core Django Foundation](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_02_Core_Django_Foundation.md)** — Custom user model, rate limiting, and authentication.
 3. **[Phase 03: Blueprint Domain & Versioning](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_03_Blueprint_Domain.md)** — Relational domain models (`Blueprint`, `Section`, `Version`, `Jobs`), API endpoints, and serialization.
 4. **[Phase 04: LLM Adapter & Provider Abstraction](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_04_LLM_Service.md)** — `LLMService` and `GeminiProvider` implementations, validation schemas, and retry logic.
@@ -24,18 +24,33 @@ Below are the direct links to the individual phase documents detailing the folde
 
 ---
 
-## 2. Architecture Consistency Review
+## 2. Architecture Review
 
-Based on a detailed review of the source documents in the [Docs/](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/) directory, the following inconsistencies and gaps were identified and are explicitly resolved in this implementation plan:
+Below is the list of architectural inconsistencies identified between the core design documents. The implementation roadmap highlights these inconsistencies but does not finalize or resolve them, as architectural decisions must be resolved in the source planning documents:
 
-* **User Tiers and Rate Limiting**: `PRD.md` and `Feature_List.md` specify user-tier usage rate limits, but the database schema in `DB_Schema.md` has no `tier` or metadata column on the `users` table. 
-  * *Resolution*: The Custom User model will include a `tier` enum (`FREE`, `PREMIUM`), and a Redis-backed DRF rate-limiting middleware is scheduled in Phase 02.
-* **Decision Category Mismatches**: `Decision_Memory_Architecture.md` lists a `category` column (`MARKET`, `PRODUCT`, `TECH_STACK`, `BUSINESS_MODEL`) on the `decision_log` table, but `DB_Schema.md` omits this column from the `decision_log` specification and uses `BUSINESS` instead of `BUSINESS_MODEL` on the `sections` category column.
-  * *Resolution*: We include the `category` column on the `decision_log` table (standardized as `MARKET`, `PRODUCT`, `TECH_STACK`, `BUSINESS`) to optimize fast SQL fetches without joining section records.
-* **Traceability Mappings**: The `versions` table (3.5) did not have a foreign key to track which Celery task or LangGraph run generated that text, despite the ERD showing a relation.
-  * *Resolution*: We add `agent_run_id` (FK to `agent_runs.id`) and `job_id` (FK to `jobs.id`) columns directly to `versions` and `decision_log` to guarantee audit trail continuity.
-* **Relationship between Jobs and Agent Runs**: The schema specifies both Celery `jobs` and LangGraph `agent_runs`.
-  * *Resolution*: We establish a 1-to-many relationship where a scheduled `job` can trigger multiple `agent_runs` (e.g. during manual retry or resume operations). An `agent_run` table has an explicit `job_id` FK.
+### Inconsistency 1: User Tiers and Rate Limiting
+* **Inconsistency**: `PRD.md` and `Feature_List.md` specify user-tier usage rate limits, but the database schema in `DB_Schema.md` has no `tier` or metadata column on the `users` table.
+* **Affected Documents**: [PRD.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/PRD.md), [Feature_List.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Feature_List.md), [DB_Schema.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/DB_Schema.md)
+* **Why Implementation is Blocked**: It is not possible to implement or store user tiers in the database or enforce tier-based rate limits without a designated field or extension in the custom user model.
+* **Action Required**: An explicit architectural decision must be made in the planning documents to define the `tier` field schema and its default values in the user database model.
+
+### Inconsistency 2: Decision Category Mismatches
+* **Inconsistency**: `Decision_Memory_Architecture.md` lists a `category` column (`MARKET`, `PRODUCT`, `TECH_STACK`, `BUSINESS_MODEL`) on the `decision_log` table, but `DB_Schema.md` omits this column from the `decision_log` specification and uses `BUSINESS` instead of `BUSINESS_MODEL` on the `sections` category column.
+* **Affected Documents**: [Decision_Memory_Architecture.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Decision_Memory_Architecture.md), [DB_Schema.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/DB_Schema.md)
+* **Why Implementation is Blocked**: The validation logic, Pydantic extraction schemas, and SQL schemas cannot be aligned without standardizing the categories across both decision logs and section records.
+* **Action Required**: Align the category set in the source documents (`DB_Schema.md` vs. `Decision_Memory_Architecture.md`) to standard enum values.
+
+### Inconsistency 3: Traceability Mappings
+* **Inconsistency**: The `versions` table did not have a foreign key to track which Celery task or LangGraph run generated that text, despite the ERD showing a relation.
+* **Affected Documents**: [DB_Schema.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/DB_Schema.md)
+* **Why Implementation is Blocked**: Text updates cannot be linked to their generating background execution tasks or LangGraph runs, breaking generation traceability.
+* **Action Required**: Add explicit foreign key definitions in the database schema documents to link the `versions` and `decision_log` tables back to `agent_runs` or `jobs`.
+
+### Inconsistency 4: Relationship between Jobs and Agent Runs
+* **Inconsistency**: The schema specifies both Celery `jobs` and LangGraph `agent_runs` but does not define the relationship cardinality or key constraints between them.
+* **Affected Documents**: [DB_Schema.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/DB_Schema.md)
+* **Why Implementation is Blocked**: Defining how Celery jobs schedule, track, and resume LangGraph executions requires knowing whether a job maps to one or multiple agent runs.
+* **Action Required**: Define the relationship cardinality and key mapping between the `jobs` and `agent_runs` tables in the database schema.
 
 ---
 
@@ -139,7 +154,7 @@ sequenceDiagram
 The implementation roadmap guarantees that the repository remains stable, runnable, and testable at each milestone.
 
 ### Milestone 01: Core Web Foundation
-* **Goal**: Establish monorepo plumbing and REST services.
+* **Goal**: Establish project plumbing and REST services.
 * **Completed Functionality**: Dockerized environments running PostgreSQL, Redis, Django, and React. User authentication API and standard blueprint listing and creation endpoints are fully implemented.
 * **Demonstrable Behavior**: User can register, login, view their empty list of blueprints, and POST a raw idea string that returns a `202 Accepted` status code.
 * **Testing Checkpoint**: Pytest suite for user model creation, rate limit interceptors, and blueprint database operations. 
@@ -180,7 +195,7 @@ The implementation roadmap guarantees that the repository remains stable, runnab
 We suggest creating the following **Epics** and child **GitHub Issues** to guide sequential execution:
 
 * **Epic 01: Setup & Core API** (Milestone 01)
-  * Issue #1.1: Initialize monorepo directory structures & configure Docker Compose services.
+  * Issue #1.1: Initialize project directory structures & configure Docker Compose services.
   * Issue #1.2: Implement Custom User Model, Tier Enums, and simple JWT authentication views.
   * Issue #1.3: Develop Redis-backed user/tier rate-limiting middleware.
   * Issue #1.4: Define `Blueprint`, `Section`, `Version`, and `Jobs` database models and migrations.
@@ -217,7 +232,7 @@ We suggest creating the following **Epics** and child **GitHub Issues** to guide
 
 Maintain clean Git history by committing at logical progression points. Use the following structured boundaries:
 
-1. `setup/monorepo-plumbing`: Base structure, configurations, and Docker integration.
+1. `setup/project-plumbing`: Base structure, configurations, and Docker integration.
 2. `feat/backend/auth-rates`: Custom users, migration scripts, JWT endpoints, and rate-limiting.
 3. `feat/backend/domain-crud`: Blueprint models, migration scripts, and REST API controllers.
 4. `feat/ai/llm-provider`: `LLMService`, `GeminiProvider`, and structured schema tests.

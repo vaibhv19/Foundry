@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to construct the production-grade user interface of Foundry. We will implement the high-fidelity Mission Control layout, build the Strategy Room streaming interface (featuring the vertical Agent Timeline and Thinking Pulse indicators), develop the Interactive Document Canvas with block-based editing, implement version history toggle pills, and build the Decision Inspector sidebar and Conflict Banner for manual overrides.
 
+## Why This Phase Comes Now
+The interactive user interface, including canvas editing and decision inspecting, must be fully assembled before performing comprehensive end-to-end user flow testing and audits.
+
 ---
 
 ## Folder Structure
@@ -73,28 +76,28 @@ frontend/
 ## Atomic Implementation Tasks
 
 ### Task 10.1: Build Auth Screen Components
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 9.4
 * **Description**: Create registration and login pages using form validations and linking to `authStore` actions.
 * **Definition of Done**: Login and Registration forms validate input and authenticate sessions.
 
 ### Task 10.2: Implement Main User Dashboard
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 10.1
 * **Description**: Build `/dashboard` route. Shows list of user blueprints, search input, soft delete buttons, and a clean "Submit Idea" text input. Clicking submit invokes API and redirects to `/editor/:blueprint_id` workspace.
 * **Definition of Done**: Dashboard displays blueprints list and submits ideas.
 
 ### Task 10.3: Create Mission Control Grid Shell
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 10.2
 * **Description**: Write `MissionControlLayout` component defining a structured layout: Left Rail (Agent Timeline), Right Rail (Decision Inspector), Top Bar (Stats), and Center Panel.
 * **Definition of Done**: Layout partitions space cleanly on large displays.
 
 ### Task 10.4: Implement Strategy Room - Streaming Feed Panel
-* **Size**: M
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 10.3, Task 9.6
 * **Description**: Create `StreamingPane` component mapping active token streaming arrays. Highlight active node contributions with Agent Badges:
@@ -104,14 +107,14 @@ frontend/
 * **Definition of Done**: Tokens stream smoothly with distinct formatting per agent.
 
 ### Task 10.5: Implement Strategy Room - Agent Activity Timeline
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 10.4
 * **Description**: Implement `LeftRail` rendering a vertical event feed indicating when a node starts execution (`NODE_STARTED`), completes (`NODE_COMPLETED`), or errors. Add `ThinkingPulse` glowing animation to the active node.
 * **Definition of Done**: Vertical status timeline updates reactively to socket events.
 
 ### Task 10.6: Create Document Canvas - Block Grid Layout
-* **Size**: M
+* **Size**: XL
 * **Risk**: Low
 * **Prerequisites**: Task 10.3, Task 9.7
 * **Description**: Create `CanvasGrid` showing 4 section blocks: Market, Product, Tech Stack, and Business model. Render active markdown content for each section.
@@ -125,21 +128,21 @@ frontend/
 * **Definition of Done**: Toggle changes shown block contents to the selected version in the UI.
 
 ### Task 10.8: Develop Revision Sidebar & Rewrite Prompt
-* **Size**: M
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 10.6
 * **Description**: Implement `RewriteSidebar`. Displays text input for instructions. Renders a toggle: "Enforce Previous Decisions". Includes "Regenerate" button which calls the backend and displays the active token stream inside the target section block.
 * **Definition of Done**: Section-specific edits execute in the background and stream tokens directly.
 
 ### Task 10.9: Build Decision Inspector Anchor Popovers
-* **Size**: M
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 10.6, Task 9.7
 * **Description**: Alongside section texts, render anchor icons `(⚓)` near choices shaped by decisions (e.g. PostgreSQL, AWS). Clicking anchor opens popover listing: Category, Key, Value, Rationale, Owner, and a list of downstream dependencies.
 * **Definition of Done**: Popover displays correct decision metadata on clicking anchor.
 
 ### Task 10.10: Build Conflict Alerts and Manual Override Modal
-* **Size**: M
+* **Size**: S
 * **Risk**: High
 * **Prerequisites**: Task 10.8, Task 10.9
 * **Description**: Create `ConflictBanner` and override modal. When a regeneration task returns a `422 Conflict` or fails with a conflict error:
@@ -156,7 +159,7 @@ frontend/
 * **Definition of Done**: Triggers document compilation and downloads files locally.
 
 ### Task 10.12: Write React Components Unit Tests
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 10.10
 * **Description**: Write frontend component tests using React Testing Library and Jest:
@@ -174,19 +177,50 @@ frontend/
 
 ---
 
-## Suggested Git Commits
-- `feat/frontend/auth-views`: Registration and Login pages.
-- `feat/frontend/dashboard-view`: Dashboard listing and idea submission views.
-- `feat/frontend/mission-layout`: Mission Control layout panels.
-- `feat/frontend/stream-pane`: Token streaming feed and agent badges.
-- `feat/frontend/timeline-indicator`: Left rail activity timeline and thinking pulse animations.
-- `feat/frontend/canvas-grid`: Interactive Document Canvas block grid.
-- `feat/frontend/version-toggle`: Block headers and version selection pills.
-- `feat/frontend/revision-sidebar`: Section editing input sidebar.
-- `feat/frontend/decision-anchors`: Clickable anchor icons and popover details.
-- `feat/frontend/conflict-override`: Conflict banners and override confirm dialogs.
-- `feat/frontend/export-ui`: Export preview window and download triggers.
-- `test/frontend/components`: Component unit and interaction tests.
+## Developer Validation Checklist
+- [ ] Authentication screens validate form inputs and handle session errors gracefully.
+- [ ] User Dashboard fetches and displays lists of blueprints reactively.
+- [ ] Grid layout partitions center workspace, sidebars, and timeline correctly.
+- [ ] Stream Feed Panel renders live token streams with distinct typography/color per agent type.
+- [ ] Left Rail timelines and Thinking Pulse animations update dynamically based on socket events.
+- [ ] Document Canvas displays all 4 section cards with active markdown styling.
+- [ ] Version selection badges trigger local block updates and state changes.
+- [ ] Revision Sidebar triggers section regenerations and displays incoming streams correctly.
+- [ ] Inspector popovers correctly fetch and display active decision metadata and child dependencies.
+- [ ] Conflict Alert Banners render details of HTTP 422 errors and support override actions.
+- [ ] Export panel triggers compiled document downloads successfully.
+- [ ] RTL and Vitest component interaction and state tests pass successfully.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/frontend/canvas-ui`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase10`
+* **Suggested Commit Grouping**:
+  - `feat/frontend/auth-views`: Registration and Login pages
+  - `feat/frontend/dashboard-view`: Dashboard listing and idea submission views
+  - `feat/frontend/mission-layout`: Mission Control layout panels
+  - `feat/frontend/stream-pane`: Token streaming feed and agent badges
+  - `feat/frontend/timeline-indicator`: Left rail activity timeline and thinking pulse animations
+  - `feat/frontend/canvas-grid`: Interactive Document Canvas block grid
+  - `feat/frontend/version-toggle`: Block headers and version selection pills
+  - `feat/frontend/revision-sidebar`: Section editing input sidebar
+  - `feat/frontend/decision-anchors`: Clickable anchor icons and popover details
+  - `feat/frontend/conflict-override`: Conflict banners and override confirm dialogs
+  - `feat/frontend/export-ui`: Export preview window and download triggers
+  - `test/frontend/components`: Component unit and interaction tests
 
 ---
 
@@ -197,5 +231,5 @@ frontend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/10_Interactive_Document_Canvas_Design.md`**: Detail the styling tokens, animation layers, block rendering systems, and inline decision anchor structures.
+## Learning Document
+* **[10_Interactive_Document_Canvas_Design.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/10_Interactive_Document_Canvas_Design.md)**: Detail the styling tokens, animation layers, block rendering systems, and inline decision anchor structures. After completing this phase, document the Tippy/Popover setups, CSS timeline layout structures, and TipTap block customizations.

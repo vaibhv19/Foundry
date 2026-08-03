@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to construct the React application base architecture and state management layers. We will configure the global styling system using CSS Variables for theme tokens, establish routing parameters, build authenticated REST clients, implement custom WebSocket connections with automatic reconnect catch-up logic, and structure unified Zustand stores to handle authentication, blueprint lists, real-time streaming, and canvas editing states.
 
+## Why This Phase Comes Now
+The React application configuration, base routing, and global Zustand state/WebSocket client layers must be established before we build the interactive visual components that rely on them.
+
 ---
 
 ## Folder Structure
@@ -86,14 +89,14 @@ frontend/
 ## Atomic Implementation Tasks
 
 ### Task 9.1: Add Packages to package.json
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 1.4
 * **Description**: Add `zustand`, `axios`, `react-router-dom`, and `lucide-react` to `frontend/package.json` and run installations.
 * **Definition of Done**: Dependencies are present in `node_modules`.
 
 ### Task 9.2: Create Global CSS Styling Sheet
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 9.1
 * **Description**: Create `frontend/src/index.css`. Declare root CSS variables, typography maps, layout styles, and animations:
@@ -109,21 +112,21 @@ frontend/
 * **Definition of Done**: Axios wrapper intercepts and adds token tags to outbox payloads.
 
 ### Task 9.4: Implement Auth Store and Route Guards
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 9.3
 * **Description**: Create `src/store/authStore.js` to manage login/register status and persist credentials in localStorage. Write `src/components/common/ProtectedRoute.jsx` that redirects unauthenticated users to `/login`.
 * **Definition of Done**: Unauthorized attempts to access private paths are redirected.
 
 ### Task 9.5: Implement Blueprint Store
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 9.4
 * **Description**: Create `src/store/blueprintStore.js` containing API endpoints matching backend routes: list, create, detail, delete, rename, duplicate.
 * **Definition of Done**: Store actions perform REST calls and mutate lists state correctly.
 
 ### Task 9.6: Develop Strategy Room WebSocket Store
-* **Size**: M
+* **Size**: S
 * **Risk**: High
 * **Prerequisites**: Task 9.5
 * **Description**: Create `src/store/strategyStore.js`. Manages:
@@ -135,7 +138,7 @@ frontend/
 * **Definition of Done**: Store exposes clear methods to update state from socket events.
 
 ### Task 9.7: Develop Canvas Block and Version Store
-* **Size**: M
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 9.5
 * **Description**: Create `src/store/canvasStore.js`. Track:
@@ -156,7 +159,7 @@ frontend/
 * **Definition of Done**: Socket reconnects automatically and calls refresh state.
 
 ### Task 9.9: Write Store Unit Tests
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 9.8
 * **Description**: Write unit tests using Vitest (or standard Jest) to assert:
@@ -174,16 +177,44 @@ frontend/
 
 ---
 
-## Suggested Git Commits
-- `feat/frontend/dependencies`: Install frontend libraries.
-- `feat/frontend/css-variables`: Visual variables & keyframe animations.
-- `feat/frontend/rest-client`: Axios custom configuration.
-- `feat/frontend/auth-routing`: Session stores and navigation routing.
-- `feat/frontend/blueprint-store`: Blueprint listing CRUD store actions.
-- `feat/frontend/strategy-store`: Real-time streaming store.
-- `feat/frontend/canvas-store`: Interactive canvas version control state stores.
-- `feat/frontend/websocket-client`: Auto-reconnect WebSocket socket manager.
-- `test/frontend/stores`: Unit tests for Zustand store actions.
+## Developer Validation Checklist
+- [ ] React frontend scaffolding builds successfully via Vite developer tools.
+- [ ] Visual style variables and global typography classes load without CSS errors.
+- [ ] Axios client successfully intercepts request headers and appends active JWT tokens.
+- [ ] Zustand authentication store registers and retains user sessions.
+- [ ] Blueprint store triggers REST calls and updates local lists state.
+- [ ] Strategy store updates state properties correctly from mock WebSocket frame packages.
+- [ ] Canvas store select and version restore actions mutate active pointers correctly.
+- [ ] WebSocket client manager establishes socket connection and executes automatic reconnect logic.
+- [ ] Vitest unit tests pass all Zustand store state mutation assertions.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/frontend/client-scaffold`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase09`
+* **Suggested Commit Grouping**:
+  - `feat/frontend/dependencies`: Install frontend libraries
+  - `feat/frontend/css-variables`: Visual variables & keyframe animations
+  - `feat/frontend/rest-client`: Axios custom configuration
+  - `feat/frontend/auth-routing`: Session stores and navigation routing
+  - `feat/frontend/blueprint-store`: Blueprint listing CRUD store actions
+  - `feat/frontend/strategy-store`: Real-time streaming store
+  - `feat/frontend/canvas-store`: Interactive canvas version control state stores
+  - `feat/frontend/websocket-client`: Auto-reconnect WebSocket socket manager
+  - `test/frontend/stores`: Unit tests for Zustand store actions
 
 ---
 
@@ -193,5 +224,5 @@ frontend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/09_Zustand_State_Management.md`**: Detail Zustand store structures, persistent store syncs, and WebSocket payload processing.
+## Learning Document
+* **[09_Zustand_State_Management.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/09_Zustand_State_Management.md)**: Detail Zustand store structures, persistent store syncs, and WebSocket payload processing. After completing this phase, document the Zustand state store partitions, query interceptor settings, and socket client reconnect loops.

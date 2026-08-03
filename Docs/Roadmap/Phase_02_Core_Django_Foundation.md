@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to establish the core user model, security protocols, and traffic limits for the Django application. We will implement a custom user model supporting distinct tiers (`FREE` and `PREMIUM`), set up JWT (JSON Web Token) authentication, and build a custom Redis-backed rate-limiting mechanism to enforce tier-based utilization policies.
 
+## Why This Phase Comes Now
+User authentication, tiers, and rate limiting must be established first because all subsequent domain models and REST endpoints depend on having an authenticated user and tier-based permissions.
+
 ---
 
 ## Folder Structure
@@ -80,14 +83,14 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 2.1: Add Dependencies
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 1.3
 * **Description**: Add `djangorestframework-simplejwt` and `redis` to `requirements.txt`. Install inside virtualenv or rebuild docker backend container.
 * **Definition of Done**: Dependencies install without conflict.
 
 ### Task 2.2: Implement Custom User Model
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 2.1
 * **Description**: Create django app `users` (`python manage.py startapp users`). Define `CustomUser` inheriting from `AbstractUser`. Remove standard username field (optional, enforce email as unique identifier) or keep it standard. Add `tier` text choices field (`FREE` / `PREMIUM`), defaulting to `FREE`. Register in `settings.py` via `AUTH_USER_MODEL = 'users.CustomUser'`.
@@ -96,7 +99,7 @@ backend/
   - Settings configured.
 
 ### Task 2.3: Generate and Run User Migrations
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 2.2
 * **Description**: Run `python manage.py makemigrations users` and `python manage.py migrate` to create database schema.
@@ -124,7 +127,7 @@ backend/
   - Registered in `settings.py`.
 
 ### Task 2.6: Write Authentication and Throttling Unit Tests
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 2.5
 * **Description**: Write pytest unit tests:
@@ -142,11 +145,36 @@ backend/
 
 ---
 
-## Suggested Git Commits
-- `feat/backend/custom-user`: Custom user model, choices, migration script.
-- `feat/backend/jwt-auth`: SimpleJWT integration, register serializer & view.
-- `feat/backend/redis-throttle`: Redis-backed throttling rules per user tier.
-- `test/backend/auth-throttle`: Unit tests verifying auth token lifecycle and 429 exceptions.
+## Developer Validation Checklist
+- [ ] CustomUser model database tables are created successfully.
+- [ ] User registration endpoint responds with JWT token structures on valid payloads.
+- [ ] User login endpoint issues valid JWT token pairs.
+- [ ] Protected endpoints reject anonymous requests with HTTP 401.
+- [ ] Redis-backed throttling engine rejects requests exceeding limits (10/min for FREE, 100/min for PREMIUM) with HTTP 429.
+- [ ] Auth and throttling unit tests pass on running pytest.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/auth/user-tiers`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase02`
+* **Suggested Commit Grouping**:
+  - `feat/backend/custom-user`: Custom user model, choices, migration script
+  - `feat/backend/jwt-auth`: SimpleJWT integration, register serializer & view
+  - `feat/backend/redis-throttle`: Redis-backed throttling rules per user tier
+  - `test/backend/auth-throttle`: Unit tests verifying auth token lifecycle and 429 exceptions
 
 ---
 
@@ -156,5 +184,5 @@ backend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/02_JWT_And_Rate_Limiting.md`**: Detail SimpleJWT configurations, custom user managers, and the Redis keyspace setup used for tier throttles.
+## Learning Document
+* **[02_JWT_And_Rate_Limiting.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/02_JWT_And_Rate_Limiting.md)**: Detail SimpleJWT configurations, custom user managers, and the Redis keyspace setup used for tier throttles. After completing this phase, document the custom user tier implementation details and the Redis rate-limiting rules.

@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to construct a clean, decoupled abstraction layer for AI services. We will define a standard `LLMService` interface and implement the `GeminiProvider` as the primary engine. This module will manage API authentication, normalize provider errors into generic application exceptions, handle transient connection retries with exponential backoff, and support structured Pydantic response parsing and token estimation.
 
+## Why This Phase Comes Now
+The LLM adapter and provider abstraction must be operational and tested before they can be orchestrated by the multi-agent graph runtime.
+
 ---
 
 ## Folder Structure
@@ -73,21 +76,21 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 4.1: Add SDK and Utility Packages
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 2.1
 * **Description**: Add `google-generativeai`, `pydantic>=2.0`, and `tenacity` packages to the `backend/requirements.txt` file and run installation.
 * **Definition of Done**: Library bundles are accessible in virtualenv imports.
 
 ### Task 4.2: Declare Custom Exception Classes
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 4.1
 * **Description**: Create file `foundry_backend/ai_engine/exceptions.py`. Write hierarchy of custom exceptions inheriting from `LLMError` to represent timeouts, rate limits, server outages, and structural validation failures.
 * **Definition of Done**: Exceptions defined and testable in Python.
 
 ### Task 4.3: Define Base LLMService Interface
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 4.2
 * **Description**: Write `LLMService` abstract class in `foundry_backend/ai_engine/service.py`. Implement `@abstractmethod` decorators for standard, streaming, and structured schema generation.
@@ -117,7 +120,7 @@ backend/
 * **Definition of Done**: Network call timeouts are caught and retried automatically.
 
 ### Task 4.7: Write Mocked Unit Tests for AI Engine
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 4.6
 * **Description**: Write pytest unit tests using `unittest.mock` to mock the Gemini SDK:
@@ -135,13 +138,40 @@ backend/
 
 ---
 
-## Suggested Git Commits
-- `feat/ai/exceptions`: Exception definitions.
-- `feat/ai/interface-service`: LLMService abstract interface classes.
-- `feat/ai/gemini-provider`: Base Gemini SDK implementation.
-- `feat/ai/structured-gemini`: Structured Pydantic extraction.
-- `feat/ai/retry-resilience`: Retry policies and error translation.
-- `test/ai/mock-gemini`: Unit test suite covering retry loops and mock interfaces.
+## Developer Validation Checklist
+- [ ] Gemini API key and model variables load correctly from environment config.
+- [ ] Base `LLMService` abstract methods throw validation errors if calling unimplemented classes.
+- [ ] Custom exceptions (`LLMRateLimitError`, `LLMTimeoutError`, etc.) correctly translate from Gemini API SDK exceptions.
+- [ ] `GeminiProvider` successfully returns mock text generation responses.
+- [ ] `GeminiProvider` token streaming yields chunks sequentially without exception.
+- [ ] Structured JSON output matches target Pydantic schema validation envelopes.
+- [ ] Tenacity retry rules successfully execute exponential backoff retries on transient errors.
+- [ ] Pytest suite runs and passes mock provider unit tests.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/ai/llm-provider`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase04`
+* **Suggested Commit Grouping**:
+  - `feat/ai/exceptions`: Exception definitions
+  - `feat/ai/interface-service`: LLMService abstract interface classes
+  - `feat/ai/gemini-provider`: Base Gemini SDK implementation
+  - `feat/ai/structured-gemini`: Structured Pydantic extraction
+  - `feat/ai/retry-resilience`: Retry policies and error translation
+  - `test/ai/mock-gemini`: Unit test suite covering retry loops and mock interfaces
 
 ---
 
@@ -151,5 +181,5 @@ backend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/04_LLM_Service_And_Provider_Abstraction.md`**: Detail Gemini API configuration, JSON schema enforcement, and fallback recovery.
+## Learning Document
+* **[04_LLM_Service_And_Provider_Abstraction.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/04_LLM_Service_And_Provider_Abstraction.md)**: Detail Gemini API configuration, JSON schema enforcement, and fallback recovery. After completing this phase, document the provider abstraction patterns, exception translation mappings, and structured generation validation checks.

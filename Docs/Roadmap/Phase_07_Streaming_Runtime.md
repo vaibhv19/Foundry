@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to construct the real-time event streaming network. We will integrate Django Channels (ASGI), build custom token authentication middleware for WebSocket connections, implement the `StrategyRoomConsumer` to process client-side actions and route messages, write Celery background tasks to execute the LangGraph debate off the request thread, and wire the Celery-to-Channels publisher to broadcast live token streams.
 
+## Why This Phase Comes Now
+Real-time event streaming and background task execution must be functional before we can build the targeted regeneration workflow, which relies on async task execution and live token streaming.
+
 ---
 
 ## Folder Structure
@@ -69,7 +72,7 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 7.1: Add Channels and Celery Dependencies
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 5.1
 * **Description**: Add `channels`, `channels_redis`, and `celery` packages to the `backend/requirements.txt` file and run installation.
@@ -114,7 +117,7 @@ backend/
 * **Definition of Done**: Call `publish_event(blueprint_id, 'TOKEN', payload)` dispatches correct payload structure to Channels group.
 
 ### Task 7.7: Wire Event Publishing into LangGraph Node Execution
-* **Size**: M
+* **Size**: S
 * **Risk**: High
 * **Prerequisites**: Task 7.6, Task 5.9
 * **Description**: Modify LangGraph node execution loops inside nodes:
@@ -125,7 +128,7 @@ backend/
 * **Definition of Done**: Running a mock graph sends sequential WebSocket events to the Channel Layer group.
 
 ### Task 7.8: Implement Async Celery Debate Task
-* **Size**: M
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 7.7, Task 7.2
 * **Description**: Implement Celery task `run_strategy_debate(blueprint_id)` in `strategy_room/tasks.py`. Steps:
@@ -138,7 +141,7 @@ backend/
 * **Definition of Done**: Celery task executes and updates models and channels in real-time.
 
 ### Task 7.9: Write WebSocket and Celery Integration Tests
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 7.8
 * **Description**: Write test cases:
@@ -155,14 +158,42 @@ backend/
 
 ---
 
-## Suggested Git Commits
-- `feat/backend/celery-setup`: Celery configurations and settings.
-- `feat/backend/asgi-channels`: Channels protocol setup and Daphne configuration.
-- `feat/backend/ws-auth`: JWT Query String authentication middleware.
-- `feat/backend/ws-consumer`: WebSocket consumer group management.
-- `feat/backend/ws-publisher`: Celery-to-Channels event dispatcher.
-- `feat/backend/celery-task`: Debate background worker task.
-- `test/backend/ws-streaming`: Consumer and Celery test suite.
+## Developer Validation Checklist
+- [ ] Django Channels ASGI routing compiles and Daphne initiates socket connections successfully.
+- [ ] Custom JWT query string auth middleware successfully validates WebSockets handshake scope.
+- [ ] `StrategyRoomConsumer` handles auth and correctly manages Redis channel groups.
+- [ ] Sockets successfully connect, join groups, and route JSON commands.
+- [ ] Event publisher maps message envelopes to the Channel Layer group.
+- [ ] LangGraph nodes publish `NODE_STARTED`, `TOKEN`, and `NODE_COMPLETED` events in order.
+- [ ] Celery tasks execute off-request thread and run `GraphRunner` synchronously in background.
+- [ ] WebSocket client (e.g. websocat) connects and streams token JSON payloads in real time.
+- [ ] Pytest suite verifies consumer connections and task-to-channel events.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/channels/realtime-streaming`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase07`
+* **Suggested Commit Grouping**:
+  - `feat/backend/celery-setup`: Celery configurations and settings
+  - `feat/backend/asgi-channels`: Channels protocol setup and Daphne configuration
+  - `feat/backend/ws-auth`: JWT Query String authentication middleware
+  - `feat/backend/ws-consumer`: WebSocket consumer group management
+  - `feat/backend/ws-publisher`: Celery-to-Channels event dispatcher
+  - `feat/backend/celery-task`: Debate background worker task
+  - `test/backend/ws-streaming`: Consumer and Celery test suite
 
 ---
 
@@ -173,5 +204,5 @@ backend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/07_WebSockets_And_Async_Streaming.md`**: Detail Channels ASGI integration, custom token authorization, and Redis cluster backings.
+## Learning Document
+* **[07_WebSockets_And_Async_Streaming.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/07_WebSockets_And_Async_Streaming.md)**: Detail Channels ASGI integration, custom token authorization, and Redis cluster backings. After completing this phase, document the WebSocket stream payload schemas, Daphne settings, and Celery worker configurations.

@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to build the core Decision Memory Engine. We will implement the `DecisionLog` relational operations, write Pydantic schemas for structured extraction of choices from raw agent prose, implement the SQL-based "Consistency Join" retrieval, construct the Comparison Hash conflict detector, develop the manual override handler, and implement the Decision Graph dependency tracking edges for cascading conflict propagation.
 
+## Why This Phase Comes Now
+The Decision Memory storage, retrieval, and conflict detection logic must be defined before we wire it into Celery tasks and Django Channels for real-time streaming and async execution.
+
 ---
 
 ## Folder Structure
@@ -97,7 +100,7 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 6.1: Define Extraction Pydantic schemas
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 4.1
 * **Description**: Create file `foundry_backend/decision_memory/schemas.py`. Define Pydantic models for structured outputs: `DecisionSchema` and `DecisionExtractionResult` (containing a list of `DecisionSchema`).
@@ -132,7 +135,7 @@ backend/
 * **Definition of Done**: Detector correctly returns lists of conflict instances for diverging inputs.
 
 ### Task 6.5: Implement Decision Dependency DB Model
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.4
 * **Description**: Define `DecisionDependency` model in `decision_memory/models.py`. Generate database migrations and run `python manage.py migrate`.
@@ -157,7 +160,7 @@ backend/
 * **Definition of Done**: Override database writes completed and verified.
 
 ### Task 6.8: Write Decision Memory Engine Unit Tests
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 6.7
 * **Description**: Write pytest unit tests verifying:
@@ -176,15 +179,42 @@ backend/
 
 ---
 
-## Suggested Git Commits
-- `feat/ai/decision-schemas`: Pydantic models for structured extraction.
-- `feat/ai/decision-extractor`: Extractor service and system prompt wrapper.
-- `feat/ai/decision-retriever`: SQL context retrieval and formatting.
-- `feat/ai/conflict-detector`: Comparison Hash validator.
-- `feat/backend/dependency-model`: Dependency table creation and migration.
-- `feat/ai/dependency-traverser`: Dependency impact analyzer.
-- `feat/backend/override-service`: Override transaction handlers.
-- `test/backend/decision-engine`: Complete test suite for extractor, retriever, and conflict.
+## Developer Validation Checklist
+- [ ] Pydantic decision extraction schemas load and support structured JSON dumps correctly.
+- [ ] `DecisionExtractor` extracts durable architectural and business choices from dummy text.
+- [ ] SQL-based "Consistency Join" retrieval query returns active, non-superseded decision logs.
+- [ ] Conflict detector successfully identifies key collisions and value divergences.
+- [ ] Decision Dependency database tables are created and migrate successfully.
+- [ ] Dependency Impact Graph Traverser identifies all downstream child decisions affected by a parent change.
+- [ ] Manual override transaction correctly deactivates old decisions and creates linked superseding records.
+- [ ] Pytest suite passes all Decision Memory Engine unit tests.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/ai/decision-memory`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase06`
+* **Suggested Commit Grouping**:
+  - `feat/ai/decision-schemas`: Pydantic models for structured extraction
+  - `feat/ai/decision-extractor`: Extractor service and system prompt wrapper
+  - `feat/ai/decision-retriever`: SQL context retrieval and formatting
+  - `feat/ai/conflict-detector`: Comparison Hash validator
+  - `feat/backend/dependency-model`: Dependency table creation and migration
+  - `feat/ai/dependency-traverser`: Dependency impact analyzer
+  - `feat/backend/override-service`: Override transaction handlers
+  - `test/backend/decision-engine`: Complete test suite for extractor, retriever, and conflict
 
 ---
 
@@ -194,5 +224,5 @@ backend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/06_Decision_Memory_Consistency.md`**: Detail the "Consistency Join" query performance, comparison hash conflict detection rules, and relational overrides.
+## Learning Document
+* **[06_Decision_Memory_Consistency.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/06_Decision_Memory_Consistency.md)**: Detail the "Consistency Join" query performance, comparison hash conflict detection rules, and relational overrides. After completing this phase, document the consistency join schema queries, decision log parsing examples, and dependency cascade graphs.

@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to establish the relational domain model for Foundry's core entities. We will define the database structures for `Idea`, `Blueprint`, `Section`, `Version`, `Job`, `AgentRun`, `AgentMessage`, and `Export` tables. We will also construct the complete REST API to handle CRUD operations, soft deletions, renaming, duplication, version history retrieval, version rollbacks, and file exports.
 
+## Why This Phase Comes Now
+The database models and basic REST CRUD APIs for blueprints, sections, and versions must exist before we can integrate the LLM service that generates and populates these entities.
+
 ---
 
 ## Folder Structure
@@ -62,7 +65,7 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 3.1: Implement Idea & Blueprint Models
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 2.3
 * **Description**: Create `blueprints` Django app. Define `Idea` model (`raw_text`, `user` FK) and `Blueprint` model (`user` FK, `idea` FK, `title`, `status` choices, `created_at`). Add `is_deleted` boolean field. Create custom Manager (`BlueprintManager`) to filter out soft-deleted items by default (`is_deleted=False`).
@@ -71,7 +74,7 @@ backend/
   - Custom manager implemented.
 
 ### Task 3.2: Implement Section & Version Models
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.1
 * **Description**: Define `Section` model (`blueprint` FK, `category` ENUM choices, `sort_order` integer). Define `Version` model (`section` FK, `version_number` integer, `content_markdown` text, `is_active` boolean, `created_at` timestamp). Add audit columns: `agent_run_id` and `job_id` as nullable fields.
@@ -80,7 +83,7 @@ backend/
   - Override `save()` method on `Version` to auto-increment `version_number` based on the max `version_number` of existing versions for that section.
 
 ### Task 3.3: Implement Runtime & Export Tables
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.2
 * **Description**: Define the scheduling and diagnostic logging tables in `blueprints/models.py`:
@@ -91,21 +94,21 @@ backend/
 * **Definition of Done**: All operational database models are declared.
 
 ### Task 3.4: Generate Database Migrations
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.3
 * **Description**: Run `python manage.py makemigrations blueprints` and `python manage.py migrate` to create database schema in Postgres.
 * **Definition of Done**: Tables are successfully generated in PostgreSQL.
 
 ### Task 3.5: Implement Blueprint Serializers
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 3.4
 * **Description**: Write `BlueprintSerializer` (for lists) and `BlueprintDetailSerializer` (for detailed views, nesting active section versions and version counts). Write `SectionSerializer` and `VersionSerializer`.
 * **Definition of Done**: Serializers written and validated in DRF shell.
 
 ### Task 3.6: Create Blueprint CRUD ViewSet Endpoints
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 3.5
 * **Description**: Create `BlueprintViewSet` extending `ModelViewSet`. Implement custom actions:
@@ -115,7 +118,7 @@ backend/
 * **Definition of Done**: REST actions return expected structures.
 
 ### Task 3.7: Implement Section History and Version Restore Views
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 3.6
 * **Description**: Create `SectionViewSet` with custom action `versions` to fetch the history list. Create `VersionViewSet` with action `restore` `/api/v1/versions/{id}/restore/` that sets the target version `is_active=True`, and all other sibling versions for that section `is_active=False`.
@@ -129,7 +132,7 @@ backend/
 * **Definition of Done**: Mock export triggers and generates a downloadable text file in the media volume.
 
 ### Task 3.9: Write Unit and Integration Tests for Blueprint CRUD and Rollbacks
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 3.8
 * **Description**: Write tests to assert:
@@ -147,13 +150,41 @@ backend/
 
 ---
 
-## Suggested Git Commits
-- `feat/backend/blueprint-models`: Models definitions and migrations.
-- `feat/backend/blueprint-crud`: DRF viewsets, serializers, list and retrieve routing.
-- `feat/backend/blueprint-actions`: Soft-deletion, rename, and duplication actions.
-- `feat/backend/version-rollback`: History tracking lists and version restoration routes.
-- `feat/backend/export-service`: Markdown compilation pipeline.
-- `test/backend/blueprint-domain`: API tests validating CRUD, cloning, and rollback states.
+## Developer Validation Checklist
+- [ ] Database schema migrations run successfully for all models.
+- [ ] REST endpoints for blueprints list and detail return correct status codes and JSON payloads.
+- [ ] Soft deletion successfully hides blueprint records from default GET index queries.
+- [ ] Custom rename endpoint `/api/v1/blueprints/{id}/rename/` updates titles.
+- [ ] Duplication action clones blueprints, sections, and active versions with new UUIDs.
+- [ ] Section versions history lists historical version records.
+- [ ] Version restore endpoint toggles active flags successfully.
+- [ ] Mock export returns a joined markdown text file in the media volume.
+- [ ] Blueprint domain and rollback unit tests pass on running pytest.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/blueprint/domain`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase03`
+* **Suggested Commit Grouping**:
+  - `feat/backend/blueprint-models`: Models definitions and migrations
+  - `feat/backend/blueprint-crud`: DRF viewsets, serializers, list and retrieve routing
+  - `feat/backend/blueprint-actions`: Soft-deletion, rename, and duplication actions
+  - `feat/backend/version-rollback`: History tracking lists and version restoration routes
+  - `feat/backend/export-service`: Markdown compilation pipeline
+  - `test/backend/blueprint-domain`: API tests validating CRUD, cloning, and rollback states
 
 ---
 
@@ -163,5 +194,5 @@ backend/
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/03_Blueprint_Lifecycle_And_Version_Control.md`**: Document database schema design decisions, soft deletion patterns in Django, and transaction safety during record duplication.
+## Learning Document
+* **[03_Blueprint_Lifecycle_And_Version_Control.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/03_Blueprint_Lifecycle_And_Version_Control.md)**: Document database schema design decisions, soft deletion patterns in Django, and transaction safety during record duplication. After completing this phase, document the blueprint lifecycle transitions, DB schema relationships, and section version rollback behavior.

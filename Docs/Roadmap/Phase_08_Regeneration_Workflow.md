@@ -3,6 +3,9 @@
 ## Phase Goal
 The objective of this phase is to construct the targeted, consistency-enforced section regeneration and rollback mechanisms. We will build a partial agent routing manager to execute targeted graph sub-paths based on modified section categories, write the regeneration Celery tasks, wire the pre-generation Comparison Hash validations to intercept conflicts, establish override propagation workflows, and implement the database transactions for version restoration and decision state rollbacks.
 
+## Why This Phase Comes Now
+The complete set of backend APIs, background tasks, and streaming endpoints (including regeneration and rollback) must be fully functional and verified before building the React frontend client layers to consume them.
+
 ---
 
 ## Folder Structure
@@ -63,7 +66,7 @@ backend/
 ## Atomic Implementation Tasks
 
 ### Task 8.1: Implement Partial Agent Router
-* **Size**: S
+* **Size**: M
 * **Risk**: Low
 * **Prerequisites**: Task 5.9
 * **Description**: Create file `strategy_room/routing_rules.py`. Write routing functions mapping section categories to agent nodes. For example:
@@ -73,7 +76,7 @@ backend/
 * **Definition of Done**: Router returns correct sequence array for each category type.
 
 ### Task 8.2: Implement Targeted Section Regeneration Task
-* **Size**: M
+* **Size**: S
 * **Risk**: High
 * **Prerequisites**: Task 8.1, Task 7.8, Task 6.3
 * **Description**: Write Celery task `run_section_regeneration` in `strategy_room/tasks.py`. Steps:
@@ -117,8 +120,8 @@ backend/
   - Reactivate the decisions that were active when the restored version was created (identifiable via `created_by_version_id` links).
 * **Definition of Done**: Rollback transaction executes atomically, syncing versions and decisions without orphans.
 
-### Task 8.6: Write Integration Tests for Regeneration and Rollbacks
-* **Size**: L
+### Task 8.6: Write Targeted Regeneration and Transaction Rollback Tests
+* **Size**: S
 * **Risk**: Medium
 * **Prerequisites**: Task 8.5
 * **Description**: Write comprehensive integration tests:
@@ -132,18 +135,45 @@ backend/
 
 ## Milestone Verification Checkpoint (Milestone 04-A)
 * **Status**: Running suite.
-* **Behavior**: Section-aware updates run in the background. The engine rejects conflicting updates, accepts manual overrides, invalidates downstream dependencies, and handles database rollbacks.
-* **Incomplete Features**: React frontend UI.
+* **Behavior**: Full backend capabilities are verified. Users can trigger section-specific regenerations, handle overrides, resolve conflicts, and rollback versions via REST endpoints.
+* **Incomplete Features**: Frontend client interface.
 
 ---
 
-## Suggested Git Commits
-- `feat/ai/regen-routing`: Category to agent graph routing rules.
-- `feat/ai/regen-task`: Targeted section execution worker task.
-- `feat/ai/conflict-interceptor`: Comparison checks inside regeneration tasks.
-- `feat/backend/cascade-override`: Downstream dependency invalidator.
-- `feat/backend/rollback-transaction`: Atomic version restoration and decision rollback.
-- `test/backend/regeneration-suite`: Comprehensive integration tests for targeted edits and rollbacks.
+## Developer Validation Checklist
+- [ ] Partial agent router maps categories (`TECH_STACK`, `PRODUCT`, `MARKET`, etc.) to the correct node execution sequences.
+- [ ] Section regeneration background tasks start successfully and load the correct historical state.
+- [ ] Automated conflict detector checks intercepts and detects inconsistencies.
+- [ ] Consistency violations successfully trigger rollback of new version writes.
+- [ ] WebSocket error event broadcasts correct conflict details to active channel groups.
+- [ ] Cascading impact warnings correctly propagate through the `DecisionDependency` tree.
+- [ ] Version rollback transactions safely restore active states and revert decision overrides.
+- [ ] Pytest suite verifies regeneration sub-path routing and rollback transactions.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/ai/targeted-regeneration`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase08`
+* **Suggested Commit Grouping**:
+  - `feat/ai/partial-router`: Partial graph routing manager
+  - `feat/ai/comparison-hash-interceptor`: Conflict check filters
+  - `feat/backend/regeneration-task`: Celery tasks for partial debate updates
+  - `feat/backend/override-propagation`: Cascading override updates
+  - `feat/backend/rollback-transactions`: Version restoration database transactional logic
+  - `test/backend/regeneration-rollback`: Targeted regeneration test coverage
 
 ---
 
@@ -152,8 +182,9 @@ backend/
 * **Issue #4.2**: Implement comparison-hash rules for automated conflict detection.
 * **Issue #4.3**: Implement Manual Override updates and decision superseding.
 * **Issue #4.4**: Add version restoration logic and decision rollback.
+* **Issue #4.5**: Implement export compiling service (Markdown to PDF/MD).
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/08_Targeted_Regeneration_And_Conflict_Resolution.md`**: Detail partial graph routes, comparison hash intercepts, override cascades, and transaction boundaries during rollbacks.
+## Learning Document
+* **[08_Targeted_Regeneration_And_Conflict_Resolution.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/08_Targeted_Regeneration_And_Conflict_Resolution.md)**: Detail partial graph routes, comparison hash intercepts, override cascades, and transaction boundaries during rollbacks. After completing this phase, document the partial routing workflows, conflict intercept handlers, and transaction rollback boundaries.

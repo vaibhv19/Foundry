@@ -1,7 +1,10 @@
 # Phase 01 — Project Setup
 
 ## Phase Goal
-The objective of this phase is to establish the monorepo plumbing, directory layouts, virtual environments, Docker configurations, and base boilerplate projects for both the Django backend and the React frontend. By the end of this phase, the developer should be able to spin up the entire application stack using a single Docker Compose command and run initial health checks.
+The objective of this phase is to establish the base project directories, virtual environments, Docker configurations, and boilerplate codebases for both the Django backend and the React frontend. By the end of this phase, the developer should be able to spin up the entire application stack using a single Docker Compose command and run initial health checks.
+
+## Why This Phase Comes Now
+Establishing the independent repository structures, development environments, and Docker containers is required before any application code, database configurations, or APIs can be written, run, or validated.
 
 ---
 
@@ -45,7 +48,7 @@ Foundry/
 
 ## Module Definitions
 
-### 1. Monorepo Plumbing & Compose Configurations
+### 1. Project Orchestration & Compose Configurations
 * **Purpose**: Coordinates Postgres, Redis, Django Channels (Daphne), Celery worker, and Vite React dev server.
 * **Responsibilities**: Orchestrating healthchecks, environment variables injection, port mappings, and volume mounts.
 * **Dependencies**: Docker Desktop installed locally.
@@ -67,8 +70,8 @@ Foundry/
 
 ## Atomic Implementation Tasks
 
-### Task 1.1: Define Monorepo Base Directories and Gitignore
-* **Size**: S
+### Task 1.1: Define Base Directories and Gitignore
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: None
 * **Description**: Create the root directory structures (`backend/`, `frontend/`, `Docs/Learning/`) and populate a comprehensive root-level `.gitignore` that ignores python `__pycache__`, virtual environments, `.env` files, Node `node_modules`, and Vite build outputs.
@@ -118,7 +121,7 @@ Foundry/
   - Running `npm install` and `npm run dev` starts local development server on port `5173`.
 
 ### Task 1.5: Dockerize Backend Service
-* **Size**: M
+* **Size**: S
 * **Risk**: Low
 * **Prerequisites**: Task 1.2, Task 1.3
 * **Description**: Create `backend/Dockerfile` using multi-stage build or standard Python base. Expose port `8000`. Configure backend service in `docker-compose.yml` mounting the code as a volume, configuring environment variables (e.g. `DATABASE_URL`, `REDIS_URL`), and waiting for `db` service healthcheck.
@@ -128,7 +131,7 @@ Foundry/
   - Connects to database successfully.
 
 ### Task 1.6: Dockerize Frontend Service
-* **Size**: S
+* **Size**: XS
 * **Risk**: Low
 * **Prerequisites**: Task 1.2, Task 1.4
 * **Description**: Create `frontend/Dockerfile` using Node alpine image. Expose port `5173`. Configure frontend service in `docker-compose.yml` mounting development volumes.
@@ -146,22 +149,48 @@ Foundry/
 
 ---
 
-## Suggested Git Commits
-- `setup/project-skeleton`: Root layout and gitignore.
-- `setup/docker-db-redis`: Basic docker-compose file with database and cache storage.
-- `setup/backend-scaffold`: Base python/django skeleton.
-- `setup/frontend-scaffold`: Base npm/vite react skeleton.
-- `setup/docker-integrated`: Unified compose build with running local servers.
+## Developer Validation Checklist
+- [ ] Local Docker container orchestration spins up successfully without errors.
+- [ ] PostgreSQL container is healthy and accepts connections on port `5432`.
+- [ ] Redis container is healthy and accepts connections on port `6379`.
+- [ ] Django backend project is scaffolded and runs locally.
+- [ ] React frontend project is scaffolded and starts local dev server on port `5173`.
+- [ ] Backend container successfully connects to database and cache layers.
+- [ ] Frontend default landing page loads without error in browser.
+
+---
+
+## Git Workflow
+
+```text
+Feature Branch
+      ↓
+   Develop
+      ↓
+   Testing
+      ↓
+    Main
+```
+
+* **Suggested Branch Name**: `feat/setup/environment`
+* **Suggested Merge Point**: `develop`
+* **Suggested Tag**: `v1.0.0-phase01`
+* **Suggested Commit Grouping**:
+  - `setup/project-skeleton`: Root layout and gitignore
+  - `setup/docker-db-redis`: Basic docker-compose file with database and cache storage
+  - `setup/backend-scaffold`: Base python/django skeleton
+  - `setup/frontend-scaffold`: Base npm/vite react skeleton
+  - `setup/docker-integrated`: Unified compose build with running local servers
 
 ---
 
 ## Suggested GitHub Issues
-* **Issue #1.1**: Initialize monorepo directory structures & configure Docker Compose services.
+* **Issue #1.1**: Initialize project directory structures & configure Docker Compose services.
 * **Issue #1.2: scaffold backend**: Initialize python virtualenv, install base packages, create django app structure.
 * **Issue #1.3: scaffold frontend**: Initialize React + Vite project and configure ports.
 * **Issue #1.4: dockerize services**: Write Dockerfiles for backend and frontend. Connect all modules into `docker-compose.yml`.
 
 ---
 
-## Expected Docs/Learning Deep-Dives
-* **`Docs/Learning/01_Local_Dev_Environment.md`**: Detail local container architecture, port maps, volume syncing, and environment file setups.
+## Learning Document
+* **[01_Local_Dev_Environment.md](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Learning/01_Local_Dev_Environment.md)**: Detail local container architecture, port maps, volume syncing, and environment file setups. After completing this phase, document the local development architecture, container settings, and health check validation steps.
