@@ -99,7 +99,7 @@ class Section(models.Model):
 class Version(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='versions')
-    version_number = models.IntegerField(default=1)
+    version_number = models.IntegerField(null=True, blank=True)
     content_markdown = models.TextField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
