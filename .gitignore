@@ -54,3 +54,5 @@ Thumbs.db
 .docker/
 db_data/
 redis_data/
+media/
+backend/media/
