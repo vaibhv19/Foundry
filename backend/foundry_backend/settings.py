@@ -127,7 +127,29 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'users.throttling.TierBasedRateThrottle',
+    ),
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': env('REDIS_URL', default='redis://127.0.0.1:6379/0'),
+    }
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}
