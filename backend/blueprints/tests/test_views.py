@@ -177,3 +177,28 @@ def test_mock_export_pipeline(auth_client, test_blueprint, test_section):
     # Clean up test export file
     if os.path.exists(export_record.storage_path):
         os.remove(export_record.storage_path)
+
+
+@pytest.mark.django_db
+def test_multi_user_scoping_security(api_client, test_blueprint, test_section):
+    user_b = User.objects.create_user(
+        email='user_b@example.com',
+        password='password123',
+        name='User B'
+    )
+    refresh_b = RefreshToken.for_user(user_b)
+    
+    client_b = api_client
+    client_b.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh_b.access_token}')
+    
+    url_detail = reverse('blueprint-detail', args=[test_blueprint.id])
+    res_get = client_b.get(url_detail)
+    assert res_get.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN]
+    
+    res_delete = client_b.delete(url_detail)
+    assert res_delete.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN]
+
+    url_regen = reverse('section-regenerate', args=[test_section.id])
+    res_regen = client_b.post(url_regen, {'user_note': 'hacked'}, format='json')
+    assert res_regen.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN]
+
