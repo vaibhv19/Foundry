@@ -54,5 +54,8 @@ Thumbs.db
 .docker/
 db_data/
 redis_data/
-media/
 backend/media/
+
+# Playwright
+e2e/test-results/
+e2e/playwright-report/
