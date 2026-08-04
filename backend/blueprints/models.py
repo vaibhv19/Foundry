@@ -202,6 +202,7 @@ class DecisionLog(models.Model):
     decision_key = models.CharField(max_length=100)
     choice_value = models.TextField()
     rationale = models.TextField(blank=True)
+    priority = models.CharField(max_length=10, default='P1')
     supersedes = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='superseded_by')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
