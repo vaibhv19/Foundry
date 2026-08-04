@@ -1,19 +1,59 @@
-# Foundry — Backend Core
+# Foundry — Backend Architecture
 
-The backend of Foundry is built using Python 3.11 with Django, Django REST Framework (DRF) for APIs, Django Channels (Daphne) for asynchronous WebSockets, Celery for multi-agent background debate runtimes, and PostgreSQL for relational persistence.
-
----
-
-## Configuration Structures
-
-* **foundry_backend/**: Core setting configurations, ASGI server bindings, routing controllers, and Celery app definitions.
-* **users/**: Handles user authentication, token pair generations (SimpleJWT), and tier-based rate limit throttles.
-* **blueprints/**: Houses the relational database schemas for Ideas, Blueprints, Canvas Sections, Version histories, and Decision Logs.
-* **ai_engine/**: Pluggable abstract client provider interface for Gemini LLM model API stream generators.
+The backend of Foundry is built using Python 3.11 with Django, Django REST Framework (DRF) for REST APIs, Django Channels (Daphne) for asynchronous WebSockets, Celery for multi-agent background debate runtimes, and PostgreSQL for relational persistence.
 
 ---
 
-## Environment Variables Configuration
+## 1. Directory Structure & App Layout
+
+The backend directory contains the following core structures:
+
+```text
+backend/
+├── manage.py                  # Django CLI entrypoint
+├── requirements.txt           # Python dependency specifications
+├── pytest.ini                 # Pytest test suite configuration
+├── foundry_backend/           # Core Project Configuration
+│   ├── settings.py            # Global Django settings configurations
+│   ├── urls.py                # Base HTTP REST API routing maps
+│   ├── asgi.py                # ASGI Channels routing & middleware stacks
+│   ├── wsgi.py                # WSGI Web Server configurations
+│   ├── celery.py              # Celery app initialization scripts
+│   ├── ai_engine/             # Abstract AI provider integrations
+│   │   ├── service.py         # Abstract base class LLMService
+│   │   └── providers/         # Gemini concrete client and local mock mode
+│   ├── decision_memory/       # Decision Log & Traversal Engines
+│   │   ├── engine.py          # State retrieval, overrides, and rollback logic
+│   │   ├── conflict.py        # Relational check rules comparing decisions
+│   │   └── graph.py           # DependencyGraphTraverser BFS cycle checker
+│   └── strategy_room/         # LangGraph agents orchestration nodes
+│       ├── runner.py          # Orchestrates LangGraph execution loop
+│       ├── tasks.py           # Background Celery task worker handlers
+│       ├── routing_rules.py   # Category-specific subsequence paths
+│       ├── consumers.py       # StrategyConsumer WebSocket ASGI endpoints
+│       └── prompts.py         # Personas prompts string constants (Investor, PM, Tech Lead)
+├── users/                     # Identity & Custom User Operations
+│   ├── models.py              # CustomUser definition & UserTiers
+│   ├── views.py               # Subclassed TokenObtainPairView auth APIs
+│   └── throttling.py          # Redis-backed TierBasedRateThrottle middleware
+└── blueprints/                # Core Blueprints, Sections, and Versions
+    ├── models.py              # Blueprint, Section, Version, Job, Event schemas
+    ├── views.py               # Blueprints ViewSet endpoints (duplicate, override, restore)
+    └── serializers.py         # Relational detail data serialization structures
+```
+
+---
+
+## 2. Core Service Dependencies
+
+1. **Daphne (ASGI)**: Runs on port `8000`. Acts as the web server coordinating standard REST requests and routing active WebSocket connection upgrades.
+2. **Celery Worker**: Evaluates LangGraph state chains offline. Communicates status/token broadcasts via Redis Pub/Sub groups to Daphne socket handlers.
+3. **Redis Broker**: Serves as the database queue message broker (Celery) and the Channels backplane (`channels-redis`) for real-time pub/sub group communication.
+4. **PostgreSQL**: Serves as the relational storage layer tracking users, ideas, blueprints, version revisions, and active decisions.
+
+---
+
+## 3. Environment Variables Configuration
 
 Copy `backend/.env.example` to `backend/.env` and update the properties:
 * `SECRET_KEY`: Random django security key.
@@ -24,7 +64,7 @@ Copy `backend/.env.example` to `backend/.env` and update the properties:
 
 ---
 
-## Local Installation (Without Docker)
+## 4. Local Installation (Without Docker)
 
 1. **Create Python virtualenv**:
    ```bash
@@ -51,7 +91,7 @@ Copy `backend/.env.example` to `backend/.env` and update the properties:
 
 ---
 
-## Celery Worker Daemon Startup
+## 5. Celery Worker Daemon Startup
 
 Celery is responsible for executing the LangGraph multi-agent debate loop asynchronously. Ensure Redis is running on port 6379 first.
 
@@ -68,7 +108,7 @@ Celery is responsible for executing the LangGraph multi-agent debate loop asynch
 
 ---
 
-## Local Unit & Integration Testing
+## 6. Local Unit & Integration Testing
 
 We use `pytest` combined with `pytest-django` for executing tests.
 
@@ -89,7 +129,7 @@ We use `pytest` combined with `pytest-django` for executing tests.
 
 ---
 
-## Run LangGraph Agents from Django Shell
+## 7. Interactive Backend Inspection
 
 You can execute debate loops or test agent outputs directly from the interactive Django shell:
 
