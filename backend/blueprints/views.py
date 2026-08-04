@@ -95,6 +95,22 @@ class BlueprintViewSet(viewsets.ModelViewSet):
 
         return Response({"blueprint_id": str(new_blueprint.id)}, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['post'])
+    def override_decision(self, request, pk=None):
+        decision_id = request.data.get('decision_id')
+        choice_value = request.data.get('choice_value')
+        rationale = request.data.get('rationale', 'Manual override via interface.')
+
+        if not decision_id or not choice_value:
+            return Response({"error": "decision_id and choice_value are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        from foundry_backend.decision_memory.engine import DecisionMemoryEngine
+        DecisionMemoryEngine.apply_override(decision_id, choice_value, rationale)
+
+        blueprint = self.get_object()
+        serializer = BlueprintDetailSerializer(blueprint)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class SectionViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]

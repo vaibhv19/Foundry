@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Blueprint, Section, Version, Idea, Export
+from .models import Blueprint, Section, Version, Idea, Export, DecisionLog
 
 class VersionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,6 +27,11 @@ class SectionSerializer(serializers.ModelSerializer):
     def get_version_count(self, obj):
         return obj.versions.count()
 
+class DecisionLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DecisionLog
+        fields = ('id', 'node_origin', 'decision_key', 'choice_value', 'rationale', 'priority', 'is_active', 'created_at')
+
 class BlueprintSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blueprint
@@ -35,10 +40,11 @@ class BlueprintSerializer(serializers.ModelSerializer):
 class BlueprintDetailSerializer(serializers.ModelSerializer):
     idea_raw = serializers.CharField(source='idea.raw_text', read_only=True)
     sections = SectionSerializer(many=True, read_only=True)
+    decisions = DecisionLogSerializer(many=True, read_only=True)
 
     class Meta:
         model = Blueprint
-        fields = ('id', 'title', 'status', 'idea_raw', 'sections', 'created_at')
+        fields = ('id', 'title', 'status', 'idea_raw', 'sections', 'decisions', 'created_at')
 
 class ExportSerializer(serializers.ModelSerializer):
     class Meta:
