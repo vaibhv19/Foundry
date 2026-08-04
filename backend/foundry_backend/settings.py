@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'blueprints',
+    'foundry_backend.decision_memory',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'

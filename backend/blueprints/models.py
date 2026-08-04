@@ -192,3 +192,20 @@ class Export(models.Model):
 
     def __str__(self):
         return f"Export {self.id} ({self.format}) for {self.blueprint.title}"
+
+
+class DecisionLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    blueprint = models.ForeignKey(Blueprint, on_delete=models.CASCADE, related_name='decisions')
+    created_by_version = models.ForeignKey(Version, on_delete=models.SET_NULL, null=True, blank=True, related_name='decisions')
+    node_origin = models.CharField(max_length=50)
+    decision_key = models.CharField(max_length=100)
+    choice_value = models.TextField()
+    rationale = models.TextField(blank=True)
+    supersedes = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='superseded_by')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.decision_key}: {self.choice_value} (Active: {self.is_active})"
+
