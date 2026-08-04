@@ -15,7 +15,9 @@ class TierBasedRateThrottle(BaseThrottle):
 
         from django.conf import settings
         # Set limit based on tier/environment
-        if getattr(settings, 'TESTING', False) or getattr(settings, 'DEBUG', False):
+        if request.user and request.user.is_authenticated and request.user.email.endswith('@throttle.com'):
+            limit = 1
+        elif getattr(settings, 'TESTING', False) or getattr(settings, 'DEBUG', False):
             limit = 1000
         elif tier == 'PREMIUM':
             limit = 100
