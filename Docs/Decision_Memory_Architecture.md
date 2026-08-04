@@ -179,3 +179,11 @@ If a decision is overridden, the engine propagates the conflict to any dependent
 2. The system validates the requested change against the active decision graph.
 3. If the override is accepted, the old decision is marked superseded and the new one becomes active.
 4. Any dependent decisions are marked for review, and the regeneration workflow is triggered accordingly.
+
+---
+
+## 9. Implementation Notes & Deviations
+
+* **Conflict Event Notification**: When a regeneration Celery task (`run_section_regeneration`) detects a conflict and `enforce_previous_decisions = True`, it raises a `ConsistencyViolationError`. The exception handler catches this and publishes an `ERROR` event over Django Channels with `error_code = "DECISION_OVERRIDE_REQUIRED"` and a JSON array of the detected conflicts, which the frontend displays in the custom `RightRail` conflict panel.
+* **ORM Column Naming**: The Decision Log primary key column is named `id` (standard in Django ORM), not `decision_id`.
+* **Manual Override Execution**: Overrides are persisted via the `override_decision` endpoint on `BlueprintViewSet`. It marks the target decision `is_active = False`, logs a new `MANUAL_OVERRIDE` decision entry with the user-provided rationale, deactivates dependent decisions using the `DependencyGraphTraverser`, and records a `MANUAL_OVERRIDE` event in `generation_events`.

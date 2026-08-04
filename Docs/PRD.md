@@ -87,3 +87,11 @@ The shared state evolves across each round: the idea remains fixed, but the mess
 
 - LLM calls are the long-pole latency item — Celery + Channels exist specifically because a synchronous request/response cycle can't hold a debate open for tens of seconds
 - The Decision Memory Engine only needs to reason over *this blueprint's* own history — it is explicitly not a general-purpose RAG system and should not be built like one
+
+---
+
+## 10. Implementation Notes & Deviations
+
+* **Contradiction Surfacing (Promoted Feature)**: While initially flagged as a stretch goal in Section 7, contradiction surfacing was promoted to a core feature. The frontend UI implements a visual "Consistency Conflict!" alert inside the `RightRail` component, displaying proposed vs. active decisions and allowing users to bypass/override constraints with custom rationales.
+* **LLM Provider**: The implemented system utilizes the `google-generativeai` SDK to connect to Google's `gemini-1.5-flash` model. It features a robust local fallback mock mode inside `GeminiProvider` to allow fully offline development, unit tests, and Playwright E2E suites to run without requiring a live Gemini API key.
+

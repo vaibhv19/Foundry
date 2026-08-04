@@ -90,3 +90,11 @@ These paths preserve the user's trust in the system while keeping the architectu
 - [Design.md](Design.md)
 - [Agent_Runtime.md](Agent_Runtime.md)
 - [WebSocket_Protocol.md](WebSocket_Protocol.md)
+
+---
+
+## 6. Implementation Notes & Deviations
+
+* **Automatic Provider Retries**: For transient LLM errors (`ResourceExhausted`, `ServiceUnavailable`, `DeadlineExceeded`), the system implements automatic exponential backoff retry loops using the python `tenacity` library. It is configured to stop after 3 attempts, waiting between 2 and 10 seconds between runs.
+* **Consistency Error Translation**: Consistency errors are captured by the `run_section_regeneration` Celery task and broadcast over WebSockets under the `ERROR` event channel with `error_code = "DECISION_OVERRIDE_REQUIRED"`. The frontend Zustand store intercepts this event and renders the corresponding conflict warning blocks and manual override triggers in the UI canvas sidebar workspace.
+

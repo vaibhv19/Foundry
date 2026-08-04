@@ -96,3 +96,15 @@ A later version may remain valid even if the decision set changes, but the syste
 - [DB_Schema.md](DB_Schema.md)
 - [App_Flow.md](App_Flow.md)
 - [Decision_Memory_Architecture.md](Decision_Memory_Architecture.md)
+
+---
+
+## 9. Implementation Notes & Deviations
+
+* **Versioning Persistence**: Each section version is persisted as a row in the `Version` model table. The version number auto-increments sequentially per section category.
+* **Rollback & Restore Implementation**: Rollbacks are executed via a `POST` request to `/api/v1/versions/{id}/restore/`. The backend `DecisionMemoryEngine.rollback_to_version` method automatically:
+  1. Sets all other sibling versions for that section to `is_active = False` and sets the selected version to `is_active = True`.
+  2. Deactivates all decisions created after the restored version was created.
+  3. Reactivates the historical decisions that were active at the time the restored version was created.
+* **Frontend Sync**: When a section's version is restored, the frontend Zustand canvas store triggers a re-fetch of the blueprint details, updating the active text display and synchronizing the Right Rail decision log list.
+

@@ -107,3 +107,11 @@ The runtime does not need to restart from scratch because the decision memory an
 - [Design.md](Design.md)
 - [App_Flow.md](App_Flow.md)
 - [WebSocket_Protocol.md](WebSocket_Protocol.md)
+
+---
+
+## 9. Implementation Notes & Deviations
+
+* **State Checkpointing & Persistence**: In the final implementation, LangGraph execution state checkpoints are not kept using native SQLite/PostgreSQL checkpoint savers. Instead, task-level inputs and outputs are persisted to Django model tables (`AgentRun`, `AgentMessage`, `GenerationEvent`, `DecisionLog`) on each node transition inside the Celery worker thread context.
+* **Celery Async Workers**: The runtime is executed in a background worker context via Celery tasks (`run_strategy_debate` and `run_section_regeneration`). Progress logs and streaming tokens are published to a Redis channel layer group (`blueprint_{id}`), which the Django ASGI Daphne container listens to and broadcasts over WebSocket connections to active clients.
+

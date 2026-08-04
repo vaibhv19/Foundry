@@ -20,29 +20,25 @@ This document defines the API contracts for the **Foundry** system. It covers th
 ### 3. Blueprint Management (`/blueprints`)
 | Path | Method | Description | Async? | Response |
 | :--- | :--- | :--- | :--- | :--- |
-| `/` | `GET` | List user's blueprints (supports `?search=`) | No | `List<Blueprint>` |
-| `/` | `POST` | **Submit Idea**: Trigger Strategy Room | **Yes** | `202: {"blueprint_id"}` |
-| `/{id}/` | `GET` | Get full blueprint + latest sections | No | `BlueprintDetail` |
-| `/{id}/status/` | `GET` | Poll for job state | No | `{"status": "READY"}` |
+| `/` | `GET` | List user's blueprints | No | `List<Blueprint>` |
+| `/` | `POST` | **Submit Idea**: Trigger Strategy Room debate | **Yes** | `202: {"blueprint_id"}` |
+| `/{id}/` | `GET` | Get full blueprint, sections list, and decisions log | No | `BlueprintDetail` |
 
 ### 4. Section & Versioning (`/sections`)
 | Path | Method | Description | Async? | Response |
 | :--- | :--- | :--- | :--- | :--- |
-| `/{id}/` | `GET` | Get specific section text/metadata | No | `SectionDetail` |
+| `/{id}/` | `GET` | Get specific section details | No | `SectionDetail` |
 | `/{id}/versions/` | `GET` | List version history for a section | No | `List<Version>` |
-| `/{id}/regenerate/`| `POST`| **Consistency Edit**: Request rewrite | **Yes** | `202: {"task_id"}` |
+| `/{id}/regenerate/`| `POST`| **Consistency Edit**: Request targeted rewrite | **Yes** | `202: {"task_id", "status"}` |
 
-### 5. Decision Memory Surface (`/decisions`)
-*Per PRD Success Criteria: The decision log must be human-inspectable.*
-| Path | Method | Description | Response |
-| :--- | :--- | :--- | :--- |
-| `/blueprint/{id}/`| `GET` | List all stored decisions for a blueprint | `List<DecisionLogEntry>` |
+### 5. Decision Memory Surface
+*Decision log records are nested and serialized directly inside the `BlueprintDetail` payload returned by `GET /api/v1/blueprints/{id}/`.*
 
 ### 6. Data Export (`/exports`)
 | Path | Method | Description | Response |
 | :--- | :--- | :--- | :--- |
-| `/{id}/trigger/` | `POST` | Compile blueprint to Markdown/PDF | `202: {"export_url"}` |
-| `/{id}/download/`| `GET` | Retrieve the generated file | `File Binary` |
+| `/{id}/trigger/` | `POST` | Compile blueprint sections to Markdown/PDF | `202: {"export_url"}` |
+| `/{id}/download/`| `GET` | Retrieve the generated file binary stream | `File Binary (.md)` |
 
 ---
 
@@ -74,14 +70,29 @@ The WebSocket transport uses the canonical event names documented in [WebSocket_
 ```json
 {
   "id": "UUID",
-  "idea_raw": "One paragraph idea...",
+  "title": "Blueprint Title",
   "status": "READY",
+  "idea_raw": "One paragraph startup concept...",
   "sections": [
     {
       "id": "UUID",
       "title": "Technical Architecture",
+      "category": "TECH_STACK",
       "latest_content": "Markdown text...",
-      "version_count": 2
+      "version_count": 2,
+      "sort_order": 2
+    }
+  ],
+  "decisions": [
+    {
+      "id": "UUID",
+      "node_origin": "Tech_Lead",
+      "decision_key": "database_engine",
+      "choice_value": "PostgreSQL",
+      "rationale": "ACID compliance and robust relational structure.",
+      "priority": "P0",
+      "is_active": true,
+      "created_at": "ISO-8601"
     }
   ],
   "created_at": "ISO-8601"
@@ -92,10 +103,13 @@ The WebSocket transport uses the canonical event names documented in [WebSocket_
 ```json
 {
   "id": "UUID",
-  "origin_node": "Tech_Lead",
-  "decision": "Relational DB (PostgreSQL)",
-  "reasoning": "Data model requires strict ACID compliance.",
-  "timestamp": "ISO-8601"
+  "node_origin": "Tech_Lead",
+  "decision_key": "database_engine",
+  "choice_value": "PostgreSQL",
+  "rationale": "ACID compliance and robust relational structure.",
+  "priority": "P0",
+  "is_active": true,
+  "created_at": "ISO-8601"
 }
 ```
 
@@ -144,21 +158,26 @@ The client may also send control messages over the same WebSocket channel.
 
 ## Part E: Additional REST Endpoints
 
-| Path | Method | Description | Response |
-| :--- | :--- | :--- | :--- |
-| `/blueprints/{id}/` | `DELETE` | Soft-delete a blueprint. | `200: {"deleted": true}` |
-| `/blueprints/{id}/rename/` | `PATCH` | Rename the blueprint title. | `200: BlueprintDetail` |
-| `/blueprints/{id}/duplicate/` | `POST` | Duplicate an existing blueprint as a new draft. | `201: {"blueprint_id": "UUID"}` |
-| `/blueprints/{id}/cancel/` | `POST` | Cancel an active generation run. | `200: {"status": "CANCELLED"}` |
-| `/blueprints/{id}/retry/` | `POST` | Retry a failed or interrupted generation. | `202: {"job_id": "UUID"}` |
-| `/versions/{id}/restore/` | `POST` | Restore a prior section version. | `200: Version` |
-| `/blueprints/{id}/exports/` | `GET` | List all exported artifacts. | `List<Export>` |
-| `/decisions/{id}/override/` | `POST` | Manually override a stored decision. | `200: DecisionLogEntry` |
-| `/blueprints/{id}/dependencies/` | `GET` | Return the decision dependency graph. | `List<DependencyNode>` |
-| `/blueprints/{id}/metadata/` | `GET` | Return blueprint lifecycle metadata and version counters. | `BlueprintMetadata` |
+| Path | Method | Description | Request Body / Query Params | Response |
+| :--- | :--- | :--- | :--- | :--- |
+| `/blueprints/{id}/` | `DELETE` | Soft-delete a blueprint. | None | `200: {"deleted": true}` |
+| `/blueprints/{id}/rename/` | `PATCH` | Rename the blueprint title. | `{"title"}` | `200: BlueprintDetail` |
+| `/blueprints/{id}/duplicate/` | `POST` | Duplicate a blueprint as a new draft. | None | `201: {"blueprint_id"}` |
+| `/blueprints/{id}/override_decision/` | `POST` | Apply manual override for a constraint. | `{"decision_id", "choice_value", "rationale"}` | `200: BlueprintDetail` |
+| `/versions/{id}/restore/` | `POST` | Restore a prior section version. | None | `200: Version` |
 
 ## Part F: Error Handling
 Foundry uses standard HTTP codes:
-- `403 Forbidden`: User attempting to access a blueprint they do not own.
-- `409 Conflict`: Attempting to regenerate a section while the blueprint is still in a `GENERATING` state.
-- `422 Unprocessable Entity`: The AI could not find a consistent path forward (used for the Decision Memory Engine's conflict workflow).
+- `400 Bad Request`: Validation errors or missing fields.
+- `401 Unauthorized`: Missing or expired JWT credentials.
+- `403 Forbidden`: Authenticated user attempting to modify another user's blueprint.
+- `404 Not Found`: Hides resource existence or missing IDs.
+- `409 Conflict`: Attempting to regenerate a section while the blueprint is still generating.
+
+---
+
+## Part G: Implementation Notes & Deviations
+
+* **Nest Decisions Log**: The standalone `/decisions/blueprint/{id}/` endpoint specified in Part A, Section 5 was merged directly into `BlueprintDetail` returned by `GET /api/v1/blueprints/{id}/`.
+* **Decision Override Endpoint**: The manual override is implemented under `/api/v1/blueprints/{id}/override_decision/` rather than `/decisions/{id}/override/`, returning the fully updated `BlueprintDetail` payload.
+* **WebSocket Client-to-Server Commands**: Control commands (like `resume_generation` and `request_state`) are deferred in v1, with status tracking driven entirely by REST endpoints and websocket server-to-client broadcasts.
