@@ -82,4 +82,20 @@ export const useBlueprintStore = create((set) => ({
       throw err;
     }
   },
+
+  overrideDecision: async (blueprintId, decisionId, choiceValue, rationale = '') => {
+    set({ loading: true, error: null });
+    try {
+      const response = await apiClient.post(`/blueprints/${blueprintId}/override_decision/`, {
+        decision_id: decisionId,
+        choice_value: choiceValue,
+        rationale,
+      });
+      set({ currentBlueprint: response.data, loading: false });
+      return response.data;
+    } catch (err) {
+      set({ error: err.message, loading: false });
+      throw err;
+    }
+  },
 }));
