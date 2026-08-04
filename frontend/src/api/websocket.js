@@ -41,25 +41,36 @@ class WebSocketManager {
     this.socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        const { type } = data;
+        const { type, payload } = data;
 
         switch (type) {
           case 'STATUS':
-            useStrategyStore.getState().updateStatusMessage(data.message);
-            if (data.node) {
-              useStrategyStore.getState().updateNodeState(data.node, 'thinking');
+            if (payload?.message) {
+              useStrategyStore.getState().updateStatusMessage(payload.message);
             }
             break;
 
-          case 'STREAM':
-            if (data.node && data.text) {
-              useStrategyStore.getState().appendToken(data.node, data.text);
-              useStrategyStore.getState().updateNodeState(data.node, 'thinking');
+          case 'NODE_STARTED':
+            if (payload?.node) {
+              useStrategyStore.getState().updateNodeState(payload.node, 'thinking');
+            }
+            break;
+
+          case 'NODE_COMPLETED':
+            if (payload?.node) {
+              useStrategyStore.getState().updateNodeState(payload.node, 'idle');
+            }
+            break;
+
+          case 'TOKEN':
+            if (payload?.node && payload?.token) {
+              useStrategyStore.getState().appendToken(payload.node, payload.token);
+              useStrategyStore.getState().updateNodeState(payload.node, 'thinking');
             }
             break;
 
           case 'COMPLETE':
-            useStrategyStore.getState().setComplete(data.message);
+            useStrategyStore.getState().setComplete(payload?.message || 'Debate completed successfully.');
             useBlueprintStore.getState().fetchBlueprintDetails(blueprintId);
             const currentNodes = useStrategyStore.getState().nodesStatus;
             Object.keys(currentNodes).forEach((node) => {
@@ -68,13 +79,13 @@ class WebSocketManager {
             break;
 
           case 'ERROR':
-            if (data.error_code === 'DECISION_OVERRIDE_REQUIRED') {
+            if (payload?.error_code === 'DECISION_OVERRIDE_REQUIRED') {
               useCanvasStore.getState().handleConflict({
-                message: data.message,
-                conflicts: data.conflicts || []
+                message: payload.message,
+                conflicts: payload.conflicts || []
               });
             }
-            useStrategyStore.getState().setError(data.message);
+            useStrategyStore.getState().setError(payload?.message || 'An error occurred during debate.');
             break;
 
           default:

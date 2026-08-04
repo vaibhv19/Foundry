@@ -44,6 +44,9 @@ class BlueprintViewSet(viewsets.ModelViewSet):
             status=BlueprintStatus.QUEUED
         )
 
+        from foundry_backend.strategy_room.tasks import run_strategy_debate
+        run_strategy_debate.delay(str(blueprint.id))
+
         return Response({"blueprint_id": str(blueprint.id)}, status=status.HTTP_202_ACCEPTED)
 
     def destroy(self, request, *args, **kwargs):
