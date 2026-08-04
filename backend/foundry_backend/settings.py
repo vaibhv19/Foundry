@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'users',
     'blueprints',
     'foundry_backend.decision_memory',
+    'foundry_backend.strategy_room',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
