@@ -1,128 +1,120 @@
 # UI_Design.md — Foundry Visual Design System
 
-This document governs the visual identity and user interface patterns for **Foundry**. It defines the transition from high-velocity autonomous generation in the **Strategy Room** to the focused, structured environment of the **Interactive Document Canvas**.
+This document specifies the official visual design system, typography, color palette, and interface components for **Foundry**. 
 
 ---
 
-## 1. Design Philosophy: "From Debate to Document"
+## 1. Design Philosophy: "The Strategy Room & Forge"
 
-Foundry is a transition engine. It moves from a fluid, multi-agent debate to a rigid, actionable blueprint. The UI must reflect this shift in state.
+Foundry’s visual identity is built around the industrial metaphor of a **Foundry** (heating, debate, forging, and casting raw ideas into a structured blueprint). It intentionally moves away from generic SaaS "dark navy/cyan" tech templates and "chatbot bubbles," favoring a focused, high-end strategy chamber aesthetic.
 
-### The Observer-to-Editor Shift
-*   **The Strategy Room (Observer Mode):** The UI should feel like a high-stakes intelligence briefing. The user is an observer watching three experts (agents) converge. Motion and streaming should emphasize the autonomous nature of the process.
-*   **The Document Canvas (Editor Mode):** Once the draft is finalized, the interface "settles." The visual noise of the debate recedes, replaced by a calm, high-focus workspace optimized for review and targeted editing.
-
-### Key Principles:
-*   **Persona Distinction:** Each agent must be instantly recognizable via color and typography to allow the user to mentally bucket technical vs. strategic vs. product advice.
-*   **Traceability:** The "Decision Memory" should be visible but non-intrusive—proving the system is consistent without cluttering the prose.
-*   **Industrial Precision:** Use rigid grids, mono-spaced data points, and technical borders. Avoid soft shadows, rounded buttons, or playful gradients.
+### Core Principles
+- **Atmospheric & Executive**: Employs deep forest greens and warm gold accents to feel like an exclusive strategy chamber rather than a standard developer terminal.
+- **Cognitive Hierarchy**: Distinguishes structural containers (cards) from metadata (status pills, inputs) to ensure content stands out cleanly without boxy visual fatigue.
+- **State Transparency**: Real-time progress is communicated through active status highlights (glowing node states) rather than generic spinning loaders.
 
 ---
 
-## 2. Visual Identity & Palette Options
+## 2. Typography
 
-### Option A: "The Industrial Forge" (High Contrast / Strategic)
-*   **Concept:** Emphasizes the "construction" of a startup. Deep slates and high-visibility accents.
-*   **Base:** `#0F172A` (Slate 900) / `#F8FAFC` (Slate 50)
-*   **Accents:** `Orange 500` (The Spark), `Cyan 500` (The Blueprint).
-*   **Agent Mapping:**
-    *   **Investor:** Gold / Amber (Commercial Value)
-    *   **PM:** Indigo / Violet (User Flow)
-    *   **Tech Lead:** Emerald / Teal (Infrastructure)
-*   **Rationale:** Highest legibility for long-form text and feels "heavy" and significant.
+The type system is clean, intentional, and restricted to two complementary families to avoid visual clutter:
 
-### Option B: "The Technical Draft" (Minimalist / Systematic)
-*   **Concept:** Mimics a professional drafting table or an architectural blueprint.
-*   **Base:** `#FFFFFF` (White) / `#E2E8F0` (Slate 200)
-*   **Accents:** `Royal Blue 600` (Ink), `Deep Red 600` (Constraints).
-*   **Agent Mapping:**
-    *   **Investor:** Deep Navy
-    *   **PM:** Slate Gray
-    *   **Tech Lead:** Cobalt Blue
-*   **Rationale:** Feels like a tool for builders. Low eye strain for long editing sessions.
+| Level | Family | Treatment | Use Case |
+| :--- | :--- | :--- | :--- |
+| **Display Heading** | `'Lora', serif` | Semibold, Letter-spacing: `-0.01em` to `-0.025em` | Major page titles, authentication headings ("Sign in to Foundry"), and section headings ("Your Startup Blueprints"). |
+| **Form Label** | `'Plus Jakarta Sans', sans-serif` | Weight: `600`, `font-size: 0.8rem`, Letter-spacing: `0.02em` | Input field labels (all uppercase) to maximize scannability. |
+| **Body & UI Controls** | `'Plus Jakarta Sans', sans-serif` | Weight: `400` / `500`, Line-height: `1.4` to `1.5` | Form inputs, buttons, status badges, log records, and general description copy. |
 
-### Option C: "The Terminal Console" (Technical / Dark Mode)
-*   **Concept:** A modern, code-editor-inspired aesthetic for technical founders.
-*   **Base:** `#09090B` (Zinc 950) / `#18181B` (Zinc 900)
-*   **Accents:** `Lime 400` (Terminal Green), `Fuchsia 500` (Logic).
-*   **Agent Mapping:**
-    *   **Investor:** Purple 400
-    *   **PM:** Blue 400
-    *   **Tech Lead:** Green 400
-*   **Rationale:** Matches the "Tech Lead" persona of the project and focuses on data density.
+> [!IMPORTANT]
+> **Serif Restriction Rule**: The Serif display treatment (`Lora`) is strictly reserved for major display headings and page titles. All metadata, form controls, card body texts, and terminal/system logs MUST use the sans-serif font (`Plus Jakarta Sans`).
 
 ---
 
-## 3. Screen-Specific Layouts
+## 3. Color Palette
 
-### 3.1 The Strategy Room (Live Debate)
-*   **The Triage View:** A three-column or radial layout showing the status of the **Investor**, **PM**, and **Tech Lead**.
-*   **The Live Stream:** A central activity feed where tokens stream in. Each message is tagged with the agent's unique badge.
-*   **The Convergence Meter:** A progress indicator at the top showing the "Convergence Score." As the `Consistency_Check` node runs, the meter fills, signaling the transition to the Canvas.
+The color scheme is designed for comfort during long sessions, using low-contrast dark bases and high-priority gold Highlights.
 
-### 3.2 The Interactive Document Canvas
-*   **Block-Based Editor:** Each section (Market, Tech Stack, etc.) is a distinct "Block." 
-*   **The Revision Sidebar:** When a section is selected, a sidebar appears for "Rewrite Requests." 
-*   **Version Toggle:** A small "v1 / v2" pill on each block header to swap between generation attempts.
+### 3.1 Core Colors
+- **Outer Canvas Background**: `#05080A` (Forest Black)
+- **Inner Canvas Glow**: `#0B1C1A` (Deep Emerald / Teal)
+- **Card Background**: `rgba(13, 20, 24, 0.82)`
+- **Card Border**: `rgba(197, 168, 128, 0.1)` (10% Gold opacity)
+- **Primary Accent (Gold)**: `#C5A880`
+- **Primary Accent Hover**: `#D5BC98`
+- **Spark Secondary Accent (Active/Error/CTA)**: `#C94A4A` (Muted Crimson) / `#F87171` (Hover Red)
+- **Primary Text**: `#E2E8F0`
+- **Muted Text**: `#8A99AD`
 
-### 3.3 The Export Preview
-*   **The Raw View:** A clean, distraction-free Markdown preview.
-*   **The Asset Panel:** Quick-download buttons for PDF, Markdown, and the **JSON Decision Log** (for technical audits).
-
----
-
-## 4. Component Patterns
-
-### 4.1 Agent Persona Badges
-Each agent has a fixed visual signature used throughout the app:
-*   **Investor:** `[INV]` — Serif font (e.g., Playfair Display), Gold border.
-*   **PM:** `[PM ]` — Sans-serif (e.g., Inter), Indigo border.
-*   **Tech Lead:** `[TEC]` — Mono font (e.g., JetBrains Mono), Teal border.
-
-### 4.2 The "Consistency Trace" (Decision Memory UI)
-This is the UI manifestation of the **Decision Memory Engine**. 
-*   **Visual Treatment:** A small "Link" or "Anchor" icon `(⚓)` appearing in the margin of a regenerated section.
-*   **Interaction:** Clicking the anchor reveals a popover: 
-    > *"This section was shaped by an earlier decision: **PostgreSQL**. (Rationale: ACID compliance for financial data)."*
-*   **Constraint Warning:** If the user tries to request a rewrite that contradicts a stored decision, the "Anchor" turns **Amber**, and a "Decision Conflict" warning appears before the generation begins.
-
-### 4.3 Streaming/Typing Indicator
-Standard "dots" are prohibited. Use a **"Thinking Pulse"**: 
-*   A subtle glow around the active Agent Badge while that node is processing in LangGraph.
-*   A status line: `[TEC] is evaluating PM's feature list for technical feasibility...`
-
-### 4.4 Version History Indicator
-*   Located in the top-right of each section block.
-*   Format: `v2` (clickable).
-*   Clicking expands a "Ghost Version" view—a diff-like overlay showing what changed between the last generation and the current one.
+### 3.2 Status Badge Fills (No Borders)
+Status tags are styled as borderless metadata pills to prevent them from looking like clickable boxes:
+- **`READY` Status**: Background `rgba(30, 94, 78, 0.25)`, Text Color `#3CD070`
+- **`QUEUED` / `GENERATING` Status**: Background `rgba(197, 168, 128, 0.15)`, Text Color `#C5A880`
 
 ---
 
-## 5. Non-Negotiable UI Constraints
+## 4. Component Patterns & Weights
 
-*   ❌ **No Generic Loading Spinners:** Use status-text updates (`Node: PM_Refining`) instead of empty progress circles.
-*   ❌ **No "Chatbot" Bubbles:** The Strategy Room should look like a structured log or a multi-pane dashboard, not a WhatsApp thread.
-*   ❌ **No Hidden Rewrites:** The user must see the "Consistency Injections" being applied so they understand *why* the AI is refusing or adhering to specific architectural choices.
+To prevent visual monotony, components are grouped into three distinct priority levels based on border and background weights:
 
-## 6. Mission Control Layout for the Strategy Room
+```mermaid
+graph TD
+    classDef card fill:rgba(13,20,24,0.8),stroke:#C5A880,stroke-width:2px;
+    classDef input fill:none,stroke:#fff,stroke-opacity:0.2,stroke-width:1px;
+    classDef badge fill:#C5A880,stroke:none;
 
-The Strategy Room should feel like a mission-control dashboard rather than three chat panes. The layout is organized into a high-density operational surface that supports realtime streaming, decision visibility, and targeted editing.
+    C1[Content Cards<br>Forge Card / Blueprint Cards] :::card
+    I1[Inputs / Control UI<br>Textareas / Search Bar] :::input
+    B1[Metadata Badges<br>READY / QUEUED Pills] :::badge
+```
 
-### 6.1 Core Areas
-- **Top Bar:** Displays the blueprint title, current lifecycle state, iteration count, and a convergence meter.
-- **Left Rail:** Shows the agent activity timeline, node status, and current active agent.
-- **Center Panel:** Streams the live debate and highlights the latest agent contribution with a compact status banner.
-- **Right Rail:** Contains the decision inspector, dependency graph, and conflict banner.
-- **Bottom Dock:** Shows generation progress, version history, and the active editing target.
+### 4.1 Cards (Primary Grouping)
+- **Visual Weight**: Thick border (`1px solid rgba(197, 168, 128, 0.08)`), dark semi-transparent fill (`rgba(13, 20, 24, 0.65)`), and blur backdrop-filter (`12px`).
+- **Use Case**: Used strictly for major content boundaries like the idea generator block and blueprint cards.
 
-### 6.2 Specials
-- **Agent Activity Timeline:** A vertical event stream that records each node start, completion, and error in time order.
-- **Decision Timeline:** A chronological list of accepted, pending, and superseded decisions so the user can inspect how the blueprint evolved.
-- **Dependency Graph:** A compact graph view showing how a change in one decision influences others.
-- **Generation Progress:** Visual progress for each section and the overall blueprint lifecycle.
-- **Conflict Banner:** A persistent alert that appears when the current proposal conflicts with an existing decision.
-- **Decision Inspector:** A side panel that reveals the rationale, owner, and dependencies of the currently selected decision.
-- **Node Status:** Each agent badge should show state such as `idle`, `thinking`, `waiting`, `complete`, or `error`.
-- **Streaming Indicators:** The active node should animate with a subtle pulse and show the current token throughput or activity marker.
+### 4.2 Inputs & Secondary Controls (Medium Weight)
+- **Visual Weight**: Borderless, using a thin bottom line (`1px solid rgba(255, 255, 255, 0.1)`) and a flat dark background (`rgba(0, 0, 0, 0.25)`) or transparent base. Focus is indicated by a gold bottom underline.
+- **Use Case**: Textareas, search inputs, and sidebar form controls.
 
-This layout keeps the experience feeling technical and operational while still remaining approachable for a portfolio audience.
+### 4.3 CTAs & Badges (Lightweight Highlights)
+- **Visual Weight**: Solid color fills. Primary buttons use a pill-shaped outline (`borderRadius: '24px'`) to distinguish them from rectangular cards. Status tags are borderless filled pills (`borderRadius: '12px'`).
+- **Use Case**: Action triggers and metadata flags.
+
+---
+
+## 5. Icon & Brand Identity
+
+### The Triple-Glow Monolith
+To avoid confusion with interactive UI actions (such as chevrons, arrows, or collapse toggles), the brand mark is a dedicated product logo:
+- **Structure**: Three clean, intersecting diagonal and vertical gold bars representing the three expert agent personas (Investor, PM, Tech Lead). They converge at the top beneath a sharp, glowing diamond crown.
+- **Styling**: Rendered in a gold gradient (`#E2C9A1` to `#C5A880`) and presented borderless inside a dark circular button badge (`backgroundColor: '#070B0D'`).
+
+---
+
+## 6. Key Screens
+
+### 6.1 Authentication (Sign In & Register)
+- **Layout**: Centered card (`maxWidth: '400px'`, `padding: '2.5rem 2.25rem'`) with a clean `fadeIn` slide entry animation.
+- **Branding**: Displays the Triple-Glow Monolith prominently above the serif header.
+
+### 6.2 Main Dashboard
+- **Forge Panel**: Single primary card containing the idea submission textarea (styled with a bottom border and dark background shade) and the pill-shaped "+ Forge Blueprint" CTA button.
+- **Blueprints Grid**: Responsive grid of cards showing file icons, creation dates, status pills, and rust-colored trash icons.
+- **Empty State**: Borderless, transparent centered graphic showing the faded brand monolith and a call-to-action to submit an idea.
+
+### 6.3 Strategy Room (Editor)
+- **Top Bar**: Gold title text in Lora, custom filled status badges, and a Gold-filled convergence progress bar.
+- **Left Rail (Timeline)**: Vertical dashed track displaying active agent node status. 
+  - *Idle nodes*: DImmed, grey outline, grey icon (`#475569`).
+  - *Thinking nodes*: Active gold highlight ring and gold fill.
+  - *Done nodes*: Green outline and green text indicating completed reasoning.
+- **Right Rail (Decision Log)**: Displays chronological decision logs styled in dark glassy cards with gold text parameters.
+
+---
+
+## 7. Open Design Questions
+
+> [!WARNING]
+> **Active Question: Job ID & Operational Metadata Visibility**
+> There is an active debate on whether low-level debug information (such as the specific Job UUID and exact worker state) should remain visible to end users at all in the Strategy Room Left Rail. 
+> - **Option A**: Remove it completely from the user-facing workspace, routing it strictly to browser developer logs or backend telemetry.
+> - **Option B**: Keep it visible as an intentional, styled status footer to maintain engineering transparency for technical users (currently implemented using the Strategy Room's font and muted colors).
