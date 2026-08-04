@@ -20,7 +20,8 @@ Below are the direct links to the individual phase documents detailing the folde
 8. **[Phase 08: Targeted Regeneration & Rollback](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_08_Regeneration_Workflow.md)** — Section-aware partial debate execution, dependency analysis, version restoration, and decision state rollback.
 9. **[Phase 09: React Frontend — Architecture & State](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_09_React_Frontend_Base.md)** — Frontend environment config, base theme, layout wireframe, Zustand global state, API, and WebSocket client layers.
 10. **[Phase 10: React Frontend — Interactive Canvas & UI](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_10_React_Frontend_UI.md)** — Mission Control, Live Streaming panel, Interactive Document Canvas, Revision Sidebar, Decision Inspector, and Export UI.
-11. **[Phase 11: Testing, Security & Learning Audit](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_11_Testing_Audit.md)** — End-to-end regression testing, validation checkpoints, usage rate-limiting audits, and `Docs/Learning/` deep-dive catalogs.
+11. **[Phase 11: Manual Setup & Environment Configuration](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_11_Manual_Setup_And_Environment_Configuration.md)** — Environment variable templates, local startup sequence documentation, and Celery service orchestration.
+12. **[Phase 12: Testing, Security & Learning Audit](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_12_Documentation_And_Audit.md)** — End-to-end regression testing, validation checkpoints, usage rate-limiting audits, and `Docs/Learning/` deep-dive catalogs.
 
 ---
 
@@ -185,8 +186,14 @@ The implementation roadmap guarantees that the repository remains stable, runnab
 * **Goal**: Assemble the client-side experience and run end-to-end.
 * **Completed Functionality**: React UI dashboard, Strategy Room live streaming animation pane, Interactive Document Canvas, Revision Sidebar, and Decision Inspector.
 * **Demonstrable Behavior**: Log in to React, type an idea, watch the three agents debate in real-time on a mission-control dashboard. Once complete, click on section blocks, inspect decision anchors, write edits in the sidebar, view conflicts, and export the blueprint to Markdown.
-* **Testing Checkpoint**: End-to-end Cypress/Playwright integration tests executing a full debate cycle and a targeted section rewrite.
-* **Intentionally Incomplete**: None (system is fully integrated and validated).
+* **Testing Checkpoint**: Component testing verifying Dashboard lists, Section version toggles, and debate streaming content rendering.
+* **Intentionally Incomplete**: Standardized local environment templates, automated Celery compose containers, Playwright E2E suites.
+
+### Milestone 06: Local Setup Standardization & E2E Validation
+* **Goal**: Standardize local development configuration, Docker Compose Celery services, E2E testing, and knowledge base documentation.
+* **Completed Functionality**: Environment templates, dockerized Celery worker running automatically, Playwright E2E suites passing.
+* **Demonstrable Behavior**: Run `docker-compose up` to launch all database, Redis, backend, frontend, and Celery worker services. Run the Playwright E2E suite successfully.
+* **Testing Checkpoint**: Playwright E2E regression suites, rate limiting audits, and security scoping validations pass.
 
 ---
 
@@ -219,12 +226,16 @@ We suggest creating the following **Epics** and child **GitHub Issues** to guide
   * Issue #4.4: Add version restoration logic and decision rollback.
   * Issue #4.5: Implement export compiling service (Markdown to PDF/MD).
 * **Epic 05: React Frontend Integration** (Milestone 05)
-  * Issue #5.1: Scaffold React (Vite) app, install Tailwind CSS, and configure layout shells.
+  * Issue #5.1: Scaffold React (Vite) app, install CSS tokens, and configure layout shells.
   * Issue #5.2: Create Zustand stores for auth, streaming debate, and canvas editing.
   * Issue #5.3: Develop Strategy Room "Observer Mode" interface (Streaming, Timeline).
   * Issue #5.4: Implement Interactive Document Canvas with block edits.
   * Issue #5.5: Create Decision Inspector popovers, Conflict Banners, and Export downloaders.
-  * Issue #5.6: Conduct final testing, verification, and `Docs/Learning` audits.
+* **Epic 06: Environment Standardization & E2E Verification** (Milestone 06)
+  * Issue #6.1: Create backend environment template file (`backend/.env.example`).
+  * Issue #6.2: Configure Celery worker container service in `docker-compose.yml`.
+  * Issue #6.3: Document local setup steps and Windows-specific Celery execution flags.
+  * Issue #6.4: Conduct final Playwright E2E testing, security validations, and `Docs/Learning` audits.
 
 ---
 
@@ -245,5 +256,6 @@ Maintain clean Git history by committing at logical progression points. Use the 
 11. `feat/frontend/live-debate-ui`: Streaming dashboard, timeline trackers, and convergence meter.
 12. `feat/frontend/document-canvas`: Document block grid, edit sidebar, and version pill.
 13. `feat/frontend/decision-memory-ui`: Anchor tags, sidebar popovers, and conflict alerts.
-14. `test/e2e-suite`: Cypress/Playwright integration suites, and rate-limit verifications.
-15. `docs/roadmap-learning-audit`: Completed learning documents and codebase review.
+14. `feat/setup/env-compose`: Create env example template file and docker compose Celery services.
+15. `test/e2e-suite`: Playwright integration suites, and rate-limit security validations.
+16. `docs/roadmap-learning-audit`: Completed learning documents and codebase review.
