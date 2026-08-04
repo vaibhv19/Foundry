@@ -128,10 +128,17 @@ class GeminiProvider(LLMService):
         options: Optional[Dict[str, Any]] = None
     ) -> Generator[str, None, None]:
         if self.is_mock:
-            yield "Strategic recommendation for raw startup concept:\n\n"
-            yield "1. Establish core target market boundaries.\n"
-            yield "2. Focus stack on stable Postgres datastore for transactional consistency.\n"
-            yield "3. Align budget to strict P1 milestones."
+            prompt_lower = prompt.lower()
+            if 'mongodb' in prompt_lower or 'mongo' in prompt_lower:
+                yield "Strategic recommendation for raw startup concept:\n\n"
+                yield "1. Establish core target market boundaries.\n"
+                yield "2. Switch database stack to MongoDB to support unstructured analytics.\n"
+                yield "3. Align budget to strict P1 milestones."
+            else:
+                yield "Strategic recommendation for raw startup concept:\n\n"
+                yield "1. Establish core target market boundaries.\n"
+                yield "2. Focus stack on stable Postgres datastore for transactional consistency.\n"
+                yield "3. Align budget to strict P1 milestones."
             return
 
         generation_config = {}
@@ -165,7 +172,15 @@ class GeminiProvider(LLMService):
             elif output_schema.__name__ == 'DecisionExtractionResult':
                 decisions = []
                 prompt_lower = prompt.lower()
-                if 'tech_lead' in prompt_lower or 'tech stack' in prompt_lower:
+                if 'mongodb' in prompt_lower or 'mongo' in prompt_lower:
+                    decisions.append({
+                        "decision_key": "database_engine",
+                        "choice_value": "MongoDB",
+                        "rationale": "Supports flexible schema and unstructured analytics.",
+                        "category": "TECH_STACK",
+                        "priority": "P0"
+                    })
+                elif 'postgres' in prompt_lower or 'tech_lead' in prompt_lower or 'tech stack' in prompt_lower or 'technical architecture' in prompt_lower:
                     decisions.append({
                         "decision_key": "database_engine",
                         "choice_value": "PostgreSQL",
