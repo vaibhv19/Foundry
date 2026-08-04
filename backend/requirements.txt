@@ -12,3 +12,6 @@ google-generativeai
 pydantic>=2.0
 tenacity
 langgraph
+channels
+channels_redis
+celery
