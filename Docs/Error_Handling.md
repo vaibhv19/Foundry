@@ -91,10 +91,32 @@ These paths preserve the user's trust in the system while keeping the architectu
 - [Agent_Runtime.md](Agent_Runtime.md)
 - [WebSocket_Protocol.md](WebSocket_Protocol.md)
 
+## 6. Engineering Rationale: Error Policies & Recovery Paths
+
+### 6.1 Resilience to Transient Network Issues (Tenacity)
+Because LLM operations rely on external API services, calls are vulnerable to network jitter, rate limiting, and temporary service dropouts.
+* **Choice**: Explicit retry decorators (`@retry`) using the `tenacity` library.
+* **Behavior**: When the provider encounters transient exceptions (`ResourceExhausted`, `ServiceUnavailable`, `DeadlineExceeded`), it pauses and retries. Using exponential backoff (starting at 2s, scaling to 10s) with 3 maximum attempts handles minor API hiccups transparently without failing the user's debate.
+
+### 6.2 Fail-Safe State Containment
+If a background job hits an unrecoverable failure:
+* **Catch-All Exception Blocks**: The Celery task executor is wrapped inside a global `try/except` boundary.
+* **State Updates**:
+  1. The `Blueprint` status is updated to `FAILED`.
+  2. The Celery worker updates `Job.status = "FAILURE"` and writes the stack trace to `Job.error_log`.
+  3. An `ERROR` WebSocket event is dispatched to notify the frontend.
+  This prevents the client UI from hanging indefinitely in a loading state, allowing the user to safely retry or inspect the error.
+
+### 6.3 Transactional Rollback Safety
+Restoring prior versions requires mutating multiple tables (marking active section versions, deactivating subsequent decisions, reactivating historical choices).
+* **Choice**: Django's `transaction.atomic()` block.
+* **Behavior**: If any DB update fails or encounters an exception during rollback, the database is rolled back to its original state. This prevents partial state corruptions where a section might change text without updating its decisions log.
+
 ---
 
-## 6. Implementation Notes & Deviations
+## 7. Implementation Notes & Deviations
 
 * **Automatic Provider Retries**: For transient LLM errors (`ResourceExhausted`, `ServiceUnavailable`, `DeadlineExceeded`), the system implements automatic exponential backoff retry loops using the python `tenacity` library. It is configured to stop after 3 attempts, waiting between 2 and 10 seconds between runs.
 * **Consistency Error Translation**: Consistency errors are captured by the `run_section_regeneration` Celery task and broadcast over WebSockets under the `ERROR` event channel with `error_code = "DECISION_OVERRIDE_REQUIRED"`. The frontend Zustand store intercepts this event and renders the corresponding conflict warning blocks and manual override triggers in the UI canvas sidebar workspace.
+
 

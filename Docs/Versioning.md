@@ -97,9 +97,24 @@ A later version may remain valid even if the decision set changes, but the syste
 - [App_Flow.md](App_Flow.md)
 - [Decision_Memory_Architecture.md](Decision_Memory_Architecture.md)
 
+## 9. Engineering Rationale: Section-Level Versioning & Restore Design
+
+### 9.1 Granular Section-Level Snapshots vs. Full-Document Snapshots
+When a blueprint is revised, only a subset of text changes. 
+* **Database Efficiency**: Saving a full 5,000-word blueprint document on every paragraph edit creates massive database bloat. Section-level versioning decouples the content, storing only the modified section's markdown text.
+* **Revision Flexibility**: Section isolation allows the user to restore the Technical Architecture to `v1` while leaving the Product Strategy at `v3`, giving the user fine-grained control over the blueprint sections.
+
+### 9.2 The Rollback & Decision Memory Sync Algorithm
+Simply reverting the text is not enough; the Decision Memory Engine must also restore the active decision log to the exact state it was in when that text version was generated.
+* **The Reactivation Strategy (`rollback_to_version`)**:
+  1. **Activate Version**: Sets `is_active = False` on all sibling versions for the section, and sets `is_active = True` on the target version.
+  2. **Deactivate Future Decisions**: Finds all active decisions created *after* the restored version's `created_at` timestamp and deactivates them (`is_active = False`). This wipes out subsequent decisions.
+  3. **Reactivate Past Decisions**: Queries all decisions created *before* the restored version's `created_at` timestamp. For each decision, it checks if it was superseded *prior* to that timestamp. If it was not superseded then, it is reactivated (`is_active = True`). If it was already superseded before that timestamp, it remains inactive (`is_active = False`).
+  This restores the exact logical constraints of the blueprint at that specific moment in time.
+
 ---
 
-## 9. Implementation Notes & Deviations
+## 10. Implementation Notes & Deviations
 
 * **Versioning Persistence**: Each section version is persisted as a row in the `Version` model table. The version number auto-increments sequentially per section category.
 * **Rollback & Restore Implementation**: Rollbacks are executed via a `POST` request to `/api/v1/versions/{id}/restore/`. The backend `DecisionMemoryEngine.rollback_to_version` method automatically:
@@ -107,4 +122,5 @@ A later version may remain valid even if the decision set changes, but the syste
   2. Deactivates all decisions created after the restored version was created.
   3. Reactivates the historical decisions that were active at the time the restored version was created.
 * **Frontend Sync**: When a section's version is restored, the frontend Zustand canvas store triggers a re-fetch of the blueprint details, updating the active text display and synchronizing the Right Rail decision log list.
+
 

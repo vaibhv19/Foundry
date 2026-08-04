@@ -182,8 +182,26 @@ If a decision is overridden, the engine propagates the conflict to any dependent
 
 ---
 
-## 9. Implementation Notes & Deviations
+## 9. Engineering Rationale: The Consistency Loop & Cascading Deactivations
+
+### 9.1 Relational Constraints vs. Text Grounding
+Traditional RAG models search large document corpus files to ground answers in external facts. In contrast, the Decision Memory Engine ensures **logical consistency** inside a closed system.
+* **Deterministic Injection**: Standard text generation can suffer from attention drift where the LLM forgets context. By querying `DecisionLog` and injecting decisions as structured, immutable properties (`ACTIVE_DECISIONS`), the LLM adapter constrains the agent's parameters to remain 100% aligned with active choices.
+
+### 9.2 Cascading Impact Analysis & Dependency Traversal
+When a user overrides an established constraint (e.g., changing the database from PostgreSQL to MongoDB), the change cannot happen in isolation. Downstream choices (e.g., ORM choice, database connection strategies) are immediately invalidated.
+* **Traversal Algorithm (`DependencyGraphTraverser`)**:
+  1. The system models decisions as nodes and dependencies as directed edges.
+  2. When `apply_override` is called, it loads the dependency graph for the blueprint.
+  3. It executes a Breadth-First Search (BFS) or Depth-First Search (DFS) starting from the overridden node key (e.g., `database_engine`) to find all downstream children.
+  4. It returns the list of impacted keys (e.g., `orm_layer`) and updates their status to `is_active = False`.
+  5. The next regeneration loop detects these inactive slots and prompts the agents to formulate new choices, resolving inconsistencies automatically.
+
+---
+
+## 10. Implementation Notes & Deviations
 
 * **Conflict Event Notification**: When a regeneration Celery task (`run_section_regeneration`) detects a conflict and `enforce_previous_decisions = True`, it raises a `ConsistencyViolationError`. The exception handler catches this and publishes an `ERROR` event over Django Channels with `error_code = "DECISION_OVERRIDE_REQUIRED"` and a JSON array of the detected conflicts, which the frontend displays in the custom `RightRail` conflict panel.
 * **ORM Column Naming**: The Decision Log primary key column is named `id` (standard in Django ORM), not `decision_id`.
-* **Manual Override Execution**: Overrides are persisted via the `override_decision` endpoint on `BlueprintViewSet`. It marks the target decision `is_active = False`, logs a new `MANUAL_OVERRIDE` decision entry with the user-provided rationale, deactivates dependent decisions using the `DependencyGraphTraverser`, and records a `MANUAL_OVERRIDE` event in `generation_events`.
+* **Manual Override Execution**: Overrides are persisted via the `override_decision` endpoint on `BlueprintViewSet`. It marks the target decision `is_active = False`, logs a new `MANUAL_OVERRIDE` decision entry with the user-provided rationale, deactivates dependent decisions using the `DependencyGraphTraverser`, and records a `MANUAL_OVERRIDE` event in `generation_events`.
+
