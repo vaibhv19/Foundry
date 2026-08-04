@@ -210,3 +210,15 @@ class DecisionLog(models.Model):
     def __str__(self):
         return f"{self.decision_key}: {self.choice_value} (Active: {self.is_active})"
 
+
+class GenerationEvent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    blueprint = models.ForeignKey(Blueprint, on_delete=models.CASCADE, related_name='generation_events')
+    event_type = models.CharField(max_length=50)
+    details = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.event_type} event for {self.blueprint.title}"
+
+
