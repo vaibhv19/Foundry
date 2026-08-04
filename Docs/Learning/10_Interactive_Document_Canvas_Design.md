@@ -33,3 +33,17 @@ When a user submits rewrite instructions with "Enforce Decisions" enabled and it
 2.  The websocket channel relays the failure block, and the frontend store dispatches to `conflictAlert` in `canvasStore`.
 3.  The client displays the warning `ConflictBanner` with conflict details.
 4.  The user can re-submit with "Proceed & Override" to de-enforce commitments. The backend then overrides contradictory items and applies the change.
+
+---
+
+## 4. Engineering Lessons & Troubleshooting Stories
+
+### 4.1 Input Textarea Keystroke Responsiveness
+* **Problem**: Typing prompt instructions inside the targeted rewrite sidebar was extremely sluggish, with typed characters taking up to 200ms to render in the textarea.
+* **Why it happened**: The text state was originally stored globally in the Zustand `canvasStore`. Every keypress event triggered a store dispatch, causing a re-render of the parent workspace grid and parsing anchor links in all sections on every keystroke.
+* **Solution**: We isolated the typing state locally within the `RewriteSidebar` React component using a standard `useState` hook. The global Zustand store is only updated when the user clicks the final "Regenerate" button, keeping keystrokes localized and running at 60 FPS.
+
+### 4.2 Resolving Visual Monotony in Card Layouts
+* **Problem**: Early implementations of the Canvas workspace suffered from "cards-within-cards" layout nesting. Every section card (Market, Product, Tech Stack, Business) had its own border, and the inputs and list elements inside them had secondary borders, making the page look like a cluttered stack of boxes.
+* **Solution**: We implemented visual hierarchy by reducing borders and introducing background shade shifts. We removed the borders from inner elements (such as textareas, labels, and metadata footers) and replaced them with subtle bottom lines or neutral background shifts. This clearly separates genuine content containers from internal inputs, improving layout readability.
+

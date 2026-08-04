@@ -79,3 +79,18 @@ To verify that the local dev environment is fully operational:
 4.  **Verify HTTP access**:
     -   Backend landing page: [http://localhost:8000](http://localhost:8000)
     -   Frontend landing page: [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 The Windows Celery Pool Crash
+* **Problem**: During local dev testing outside of Docker on Windows, starting Celery with the standard `celery -A foundry_backend worker` command resulted in immediate subprocess spawn errors and worker crashes.
+* **Why it happened**: Celery defaults to a `prefork` execution pool which relies on Unix-native `fork()` system calls. Windows lacks this system call and crashes when spawning child execution threads.
+* **Solution**: Spawning Celery using the `-P threads` or `-P solo` pool flags isolates the execution threads safely, preventing subprocess replication loops. In Docker development, this issue is avoided as the container runs a native Linux environment.
+
+### 5.2 WSL2 File Watch Latency & HMR Failures
+* **Problem**: Developers running Docker Compose on Windows with WSL2 reported that saving React files on the host machine did not trigger Hot Module Replacement (HMR) inside the `frontend` container.
+* **Why it happened**: When Docker mounts directories located on the Windows NTFS host partition (`/mnt/c/...`), the file change notifications (`inotify`) are not propagated across the WSL2 hypervisor boundary to the Linux Docker daemon.
+* **Solution**: Developers must clone and compile the repository inside the WSL2 Linux filesystem directly (e.g. `\\wsl$\Ubuntu\home\...`), which allows the Linux kernel to trigger instant file change triggers and reactivate Vite HMR.
+

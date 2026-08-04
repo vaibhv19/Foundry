@@ -95,3 +95,16 @@ Restoring a previous version of a section works by:
 2.  Opening a transaction.
 3.  Setting `is_active=False` for all versions pointing to the same parent section.
 4.  Setting `is_active=True` for the target version.
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 Soft Deletion and Cascading Relationships
+* **Problem**: In Django, foreign keys with `on_delete=models.CASCADE` will physically delete related rows if a parent is deleted. However, when using soft deletes (`is_deleted=True` on `Blueprint`), related child records (`Section`, `Version`, `DecisionLog`) remained in the database. While they weren't physically removed, they were still accessible if queried directly through their respective models (e.g., `Version.objects.all()`), leading to potential data leaks or orphan references in querysets.
+* **Solution**: Rather than implementing complex recursive soft-delete propagation overrides (which degrade database performance due to multiple nested updates), we enforced visibility scoping at the base manager layer. Standard API querysets for `Section` and `Version` are filtered using the parent blueprint's association context (e.g., `self.kwargs['blueprint_pk']`). Since the blueprint endpoint itself automatically filters out soft-deleted blueprints, these child entities are implicitly excluded from all active API responses.
+
+### 5.2 Auto-Incrementing Version Number Race Conditions
+* **Problem**: In our overridden `save()` method on the `Version` model, reading the database using `Max('version_number')` before inserting a new version is vulnerable to race conditions under high concurrency. If two worker tasks try to save a version for the same section simultaneously, they might both read the same max version number, resulting in duplicate keys or integrity constraints violations.
+* **Solution**: While a row-locking strategy (`select_for_update`) or database-level sequences could resolve this, we resolved this by structuring the background task execution queue. All targeted section regenerations are queued and executed sequentially by Celery within a single worker thread context per blueprint, eliminating parallel write collisions for individual blueprint sections.
+
