@@ -11,7 +11,7 @@ export const useAuthStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       // Pass both email and username key as email since SimpleJWT serializer might require 'username'
-      const response = await apiClient.post('/users/login/', {
+      const response = await apiClient.post('/auth/login/', {
         email,
         username: email,
         password,
@@ -38,7 +38,7 @@ export const useAuthStore = create((set) => ({
   register: async (email, name, password) => {
     set({ loading: true, error: null });
     try {
-      const response = await apiClient.post('/users/register/', {
+      const response = await apiClient.post('/auth/register/', {
         email,
         name,
         password,
