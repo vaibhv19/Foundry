@@ -119,11 +119,11 @@ const Login = () => {
                   <stop offset="100%" stop-color="#C5A880" />
                 </linearGradient>
               </defs>
-              <circle cx="50" cy="50" r="38" stroke="rgba(197, 168, 128, 0.15)" stroke-width="2" fill="none" />
-              <path d="M50,18 L50,45" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" />
-              <path d="M26,65 L50,45" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" />
-              <path d="M74,65 L50,45" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" />
-              <circle cx="50" cy="45" r="5" fill="#C5A880" />
+              <circle cx="50" cy="50" r="26" stroke="rgba(197, 168, 128, 0.2)" stroke-width="2" fill="none" />
+              <path d="M50,28 L50,48" stroke="url(#goldGrad)" stroke-width="4.5" stroke-linecap="round" />
+              <path d="M34,62 L50,48" stroke="url(#goldGrad)" stroke-width="4.5" stroke-linecap="round" />
+              <path d="M66,62 L50,48" stroke="url(#goldGrad)" stroke-width="4.5" stroke-linecap="round" />
+              <circle cx="50" cy="48" r="4.5" fill="#C5A880" />
             </svg>
           </div>
         </div>
