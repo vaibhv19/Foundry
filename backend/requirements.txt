@@ -16,3 +16,4 @@ channels
 channels_redis
 celery
 daphne
+django-cors-headers
