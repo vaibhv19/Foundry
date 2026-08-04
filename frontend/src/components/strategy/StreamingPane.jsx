@@ -18,8 +18,8 @@ const StreamingPane = () => {
       padding: '1rem',
       borderRadius: '6px',
       marginBottom: '1rem',
-      backgroundColor: '#1E293B',
-      border: '1px solid #334155',
+      backgroundColor: 'rgba(13, 20, 24, 0.4)',
+      border: '1px solid rgba(197, 168, 128, 0.08)',
       lineHeight: '1.6',
     };
 
@@ -57,18 +57,18 @@ const StreamingPane = () => {
       // System or others
       return {
         ...baseStyle,
-        fontFamily: 'var(--font-mono)',
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
         fontSize: '0.85rem',
-        backgroundColor: '#0F172A',
-        color: '#94A3B8',
-        borderLeft: '4px solid var(--color-system)',
+        backgroundColor: '#070B0D',
+        color: '#8A99AD',
+        borderLeft: '4px solid #C5A880',
       };
     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
-      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem' }}>
+      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.05rem', fontFamily: "'Lora', serif", fontWeight: '600', color: '#E2E8F0', borderBottom: '1px solid rgba(197, 168, 128, 0.1)', paddingBottom: '0.5rem' }}>
         Strategy Room Live Debate Log
       </h3>
       <div
@@ -99,8 +99,8 @@ const StreamingPane = () => {
           ))
         )}
         {isStreaming && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-blueprint)', padding: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
-            <span className="thinking-pulse" style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-blueprint)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#C5A880', padding: '0.5rem', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '0.8rem', fontWeight: '500' }}>
+            <span className="thinking-pulse" style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#C5A880' }} />
             Agents are debating...
           </div>
         )}

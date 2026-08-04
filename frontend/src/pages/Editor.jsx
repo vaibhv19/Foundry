@@ -34,7 +34,7 @@ const Editor = () => {
 
   if (bpLoading && !currentBlueprint) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--base-bg)', color: 'var(--base-text)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#05080A', color: '#8A99AD', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         Loading Blueprint Workspace...
       </div>
     );
@@ -42,7 +42,7 @@ const Editor = () => {
 
   if (!currentBlueprint) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--base-bg)', color: '#EF4444' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#05080A', color: '#EF4444', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         Blueprint not found.
       </div>
     );
@@ -51,7 +51,7 @@ const Editor = () => {
   const renderCenterView = () => {
     if (isStreaming || currentBlueprint.status === 'GENERATING') {
       return (
-        <div style={{ height: 'calc(100vh - 120px)', padding: '1rem', backgroundColor: '#1E293B', borderRadius: '8px', border: '1px solid #334155' }}>
+        <div style={{ height: 'calc(100vh - 120px)', padding: '1rem', backgroundColor: 'rgba(13, 20, 24, 0.5)', borderRadius: '12px', border: '1px solid rgba(197, 168, 128, 0.08)', backdropFilter: 'blur(12px)', boxSizing: 'border-box' }}>
           <StreamingPane />
         </div>
       );
@@ -66,7 +66,7 @@ const Editor = () => {
         <div style={{ flex: 1 }}>
           <CanvasGrid sections={currentBlueprint.sections || []} />
         </div>
-        <div style={{ width: '320px', backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '8px', position: 'sticky', top: '1.5rem' }}>
+        <div style={{ width: '320px', backgroundColor: 'rgba(13, 20, 24, 0.5)', border: '1px solid rgba(197, 168, 128, 0.08)', borderRadius: '12px', backdropFilter: 'blur(12px)', position: 'sticky', top: '1.5rem' }}>
           <RewriteSidebar />
         </div>
       </div>
@@ -86,7 +86,7 @@ const Editor = () => {
       rightrail={<RightRail />}
     >
       {!(isStreaming || currentBlueprint.status === 'GENERATING') && (
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid #1E293B', paddingBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(197, 168, 128, 0.1)', paddingBottom: '0.75rem' }}>
           <button
             onClick={() => setActiveTab('canvas')}
             style={{
@@ -94,12 +94,13 @@ const Editor = () => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: activeTab === 'canvas' ? '#1E293B' : 'transparent',
+              backgroundColor: activeTab === 'canvas' ? 'rgba(197, 168, 128, 0.1)' : 'transparent',
               border: 'none',
-              borderBottom: activeTab === 'canvas' ? '2px solid var(--accent-blueprint)' : 'none',
-              color: activeTab === 'canvas' ? 'var(--accent-blueprint)' : '#94A3B8',
+              borderRadius: '6px 6px 0 0',
+              borderBottom: activeTab === 'canvas' ? '2px solid #C5A880' : 'none',
+              color: activeTab === 'canvas' ? '#C5A880' : '#94A3B8',
               cursor: 'pointer',
-              fontWeight: 'bold',
+              fontWeight: '600',
               fontSize: '0.9rem',
             }}
           >
@@ -113,12 +114,13 @@ const Editor = () => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: activeTab === 'export' ? '#1E293B' : 'transparent',
+              backgroundColor: activeTab === 'export' ? 'rgba(197, 168, 128, 0.1)' : 'transparent',
               border: 'none',
-              borderBottom: activeTab === 'export' ? '2px solid var(--accent-blueprint)' : 'none',
-              color: activeTab === 'export' ? 'var(--accent-blueprint)' : '#94A3B8',
+              borderRadius: '6px 6px 0 0',
+              borderBottom: activeTab === 'export' ? '2px solid #C5A880' : 'none',
+              color: activeTab === 'export' ? '#C5A880' : '#94A3B8',
               cursor: 'pointer',
-              fontWeight: 'bold',
+              fontWeight: '600',
               fontSize: '0.9rem',
             }}
           >

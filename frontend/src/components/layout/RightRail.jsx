@@ -40,7 +40,7 @@ const RightRail = () => {
   };
 
   return (
-    <aside style={{ width: '320px', display: 'flex', flexDirection: 'column', backgroundColor: '#0F172A', borderLeft: '1px solid #1E293B', boxSizing: 'border-box', height: 'calc(100vh - 60px)', padding: '1.5rem', gap: '1.5rem', overflowY: 'auto' }}>
+    <aside style={{ width: '320px', display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(13, 20, 24, 0.65)', borderLeft: '1px solid rgba(197, 168, 128, 0.1)', backdropFilter: 'blur(12px)', boxSizing: 'border-box', height: 'calc(100vh - 60px)', padding: '1.5rem', gap: '1.5rem', overflowY: 'auto' }}>
       
       {conflictAlert && (
         <div style={{ padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '2px solid #EF4444', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem', position: 'relative' }}>
@@ -56,7 +56,7 @@ const RightRail = () => {
           </p>
 
           {conflictAlert.conflicts && conflictAlert.conflicts.map((conflict, i) => (
-            <div key={i} style={{ backgroundColor: '#0F172A', padding: '0.5rem', borderRadius: '4px', fontSize: '0.75rem', borderLeft: '3px solid #EF4444' }}>
+            <div key={i} style={{ backgroundColor: '#070B0D', padding: '0.5rem', borderRadius: '4px', fontSize: '0.75rem', borderLeft: '3px solid #EF4444' }}>
               <div style={{ color: '#94A3B8' }}>Key: <strong style={{ color: 'var(--base-text)' }}>{conflict.key}</strong></div>
               <div style={{ color: '#94A3B8' }}>Active Choice: <strong style={{ color: 'var(--base-text)' }}>{conflict.active_value}</strong></div>
               <div style={{ color: '#F87171' }}>Proposed Choice: <strong style={{ color: 'var(--base-text)' }}>{conflict.proposed_value}</strong></div>
@@ -66,14 +66,15 @@ const RightRail = () => {
                 style={{
                   marginTop: '0.5rem',
                   width: '100%',
-                  padding: '0.3rem',
-                  backgroundColor: 'var(--accent-spark)',
+                  padding: '0.35rem',
+                  backgroundColor: '#C5A880',
                   border: 'none',
                   borderRadius: '4px',
-                  color: 'white',
+                  color: '#030608',
                   fontWeight: 'bold',
                   cursor: 'pointer',
-                  fontSize: '0.75rem'
+                  fontSize: '0.75rem',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 Proceed & Override
@@ -84,9 +85,9 @@ const RightRail = () => {
       )}
 
       {overrideTarget && (
-        <div style={{ padding: '1rem', backgroundColor: '#1E293B', border: '1px solid var(--accent-spark)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ padding: '1rem', backgroundColor: 'rgba(13, 20, 24, 0.8)', border: '1px solid #C5A880', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--accent-spark)' }}>Override Rationale</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#C5A880' }}>Override Rationale</span>
             <button onClick={() => setOverrideTarget(null)} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
               <X size={14} />
             </button>
@@ -102,8 +103,8 @@ const RightRail = () => {
                 width: '100%',
                 padding: '0.5rem',
                 borderRadius: '4px',
-                border: '1px solid #475569',
-                backgroundColor: '#0F172A',
+                border: '1px solid rgba(197, 168, 128, 0.15)',
+                backgroundColor: '#070B0D',
                 color: 'var(--base-text)',
                 fontSize: '0.8rem',
                 resize: 'none',
@@ -117,13 +118,14 @@ const RightRail = () => {
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                backgroundColor: '#10B981',
+                backgroundColor: '#1E5E4E',
                 border: 'none',
                 borderRadius: '4px',
                 color: 'white',
                 fontWeight: 'bold',
                 cursor: 'pointer',
-                fontSize: '0.8rem'
+                fontSize: '0.8rem',
+                transition: 'all 0.15s ease'
               }}
             >
               {overriding ? 'Applying Override...' : 'Confirm & Re-submit'}
@@ -133,9 +135,9 @@ const RightRail = () => {
       )}
 
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
-          <Shield size={18} style={{ color: 'var(--accent-blueprint)' }} />
-          <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--base-text)' }}>Decision Log</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid rgba(197, 168, 128, 0.1)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+          <Shield size={18} style={{ color: '#C5A880' }} />
+          <h3 style={{ margin: 0, fontSize: '1.05rem', fontFamily: "'Lora', serif", fontWeight: '600', color: '#E2E8F0' }}>Decision Log</h3>
         </div>
 
         {activeDecisions.length === 0 ? (
@@ -149,8 +151,8 @@ const RightRail = () => {
                 key={dec.id}
                 style={{
                   padding: '0.75rem',
-                  backgroundColor: '#1E293B',
-                  border: '1px solid #334155',
+                  backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                  border: '1px solid rgba(197, 168, 128, 0.08)',
                   borderRadius: '6px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -172,14 +174,14 @@ const RightRail = () => {
                     {dec.priority}
                   </span>
                 </div>
-                <div style={{ color: 'var(--accent-blueprint)' }}>
+                <div style={{ color: '#C5A880' }}>
                   Value: <strong>{dec.choice_value}</strong>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
                   Owner: {dec.node_origin.replace('_', ' ')}
                 </div>
                 {dec.rationale && (
-                  <div style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#64748B', marginTop: '0.25rem', backgroundColor: '#0F172A', padding: '0.35rem', borderRadius: '4px' }}>
+                  <div style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#64748B', marginTop: '0.25rem', backgroundColor: '#070B0D', padding: '0.35rem', borderRadius: '4px' }}>
                     {dec.rationale}
                   </div>
                 )}
