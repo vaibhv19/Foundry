@@ -130,3 +130,11 @@ When the client reconnects:
 - [API_Specification.md](API_Specification.md)
 - [Agent_Runtime.md](Agent_Runtime.md)
 - [Error_Handling.md](Error_Handling.md)
+
+---
+
+## 8. Implementation Notes & Deviations
+
+* **Channels Payload Envelope Nesting**: In the final implementation, ASGI group broadcast messages are dispatched with data nested within a `payload` dictionary attribute. The frontend client-side `websocket.js` parser maps payloads using `data.payload` (e.g. `data.payload.message`, `data.payload.token`, `data.payload.node`, etc.).
+* **Reconnection Manager**: The client-side WebSocket manager (`frontend/src/api/websocket.js`) handles transient disconnects using an automatic exponential backoff retry mechanism (starting at 1s, doubling on failure, capped at 30s). Upon a successful reconnect, it automatically fires `fetchBlueprintDetails` to retrieve the latest blueprint and section snapshot.
+

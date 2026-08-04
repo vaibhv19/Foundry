@@ -111,10 +111,8 @@ To avoid confusion with interactive UI actions (such as chevrons, arrows, or col
 
 ---
 
-## 7. Open Design Questions
+## 7. Implementation Notes & Deviations
 
-> [!WARNING]
-> **Active Question: Job ID & Operational Metadata Visibility**
-> There is an active debate on whether low-level debug information (such as the specific Job UUID and exact worker state) should remain visible to end users at all in the Strategy Room Left Rail. 
-> - **Option A**: Remove it completely from the user-facing workspace, routing it strictly to browser developer logs or backend telemetry.
-> - **Option B**: Keep it visible as an intentional, styled status footer to maintain engineering transparency for technical users (currently implemented using the Strategy Room's font and muted colors).
+* **Job ID & Operational Metadata Visibility (Resolved)**: The debate raised in Section 7 was resolved in favor of **Option B**. The Strategy Room `LeftRail` component renders an active job details block in the lower corner. It displays the truncated 8-character prefix of the Celery task/job UUID and the current operational node state (`STREAMING` or `READY`).
+* **Visual Theme Refinements**: Radial gradients are applied on page backgrounds using forest green (`#0B1C1A`) layered behind `#05080A` to give a subtle glow. The "+ Forge Blueprint" button in the Dashboard is styled in solid `#C5A880` with dark text, shifting to a muted gold hover.
+* **Badges & Lists**: The "QUEUED" and "GENERATING" states are styled in gold/tan accents, while completed blueprints render "READY" green status tags.

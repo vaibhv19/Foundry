@@ -211,6 +211,13 @@ The budget is intentionally larger for regeneration because it must include both
 
 ## 12. Related Documents
 
-- [Design.md](Design.md)
 - [Decision_Memory_Architecture.md](Decision_Memory_Architecture.md)
 - [App_Flow.md](App_Flow.md)
+
+---
+
+## 13. Implementation Notes & Deviations
+
+* **Prompts Constants Mapping**: The prompt template definitions outlined in Section 4 are implemented exactly as defined in `backend/foundry_backend/strategy_room/prompts.py` as string constants (`SYSTEM_PROMPT`, `INVESTOR_PROMPT`, `PM_PROMPT`, `TECH_LEAD_PROMPT`, `CONSISTENCY_CHECK_PROMPT`, `TIE_BREAKER_PROMPT`).
+* **Runtime Context Injection**: Each agent graph node implementation (e.g. `backend/foundry_backend/strategy_room/nodes/investor.py`) dynamically formats these templates at runtime, pulling the active variables from the shared LangGraph state schema and passing them to the initialized `LLMService` wrapper.
+

@@ -190,3 +190,11 @@ Foundry distinguishes between three memory layers to keep the system understanda
 - **Persistent Blueprint** stores the evolving document, section versions, and export artifacts.
 
 This separation prevents the system from conflating active chat context with permanent design commitments.
+
+---
+
+## 10. Implementation Notes & Deviations
+
+* **Soft Deletes Scoping**: Soft deletes are enforced directly at the model manager layer (`BlueprintManager`) by overriding `get_queryset()` to filter out records where `is_deleted = True`. This automatically excludes soft-deleted blueprints from list, retrieve, and query results unless accessed via `all_objects`.
+* **State Syncing & WebSockets**: The UI does not poll the backend REST API for status updates. Instead, the Zustand strategy and canvas stores listen to the persistent WebSocket connection (`websocket.js`) and transition states dynamically on `NODE_STARTED`, `NODE_COMPLETED`, `COMPLETE`, or `ERROR` ASGI event packets.
+* **LLM Provider Mock Mode**: To allow seamless local development and automated E2E testing without external dependencies, `GeminiProvider` implements an offline mock mode. When dummy credentials are used, it returns simulated streams and structured JSON outputs, detecting keyword tags (like `"mongodb"` in rewrite requests) to trigger conflict and override paths deterministically.
