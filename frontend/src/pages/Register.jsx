@@ -120,11 +120,10 @@ const Register = () => {
                   <stop offset="100%" stop-color="#C5A880" />
                 </linearGradient>
               </defs>
-              <circle cx="50" cy="50" r="26" stroke="rgba(197, 168, 128, 0.2)" stroke-width="2" fill="none" />
-              <path d="M50,28 L50,48" stroke="url(#goldGrad)" stroke-width="4.5" stroke-linecap="round" />
-              <path d="M34,62 L50,48" stroke="url(#goldGrad)" stroke-width="4.5" stroke-linecap="round" />
-              <path d="M66,62 L50,48" stroke="url(#goldGrad)" stroke-width="4.5" stroke-linecap="round" />
-              <circle cx="50" cy="48" r="4.5" fill="#C5A880" />
+              <path d="M34,68 L48,34" stroke="url(#goldGrad)" stroke-width="6.5" stroke-linecap="round" />
+              <path d="M66,68 L52,34" stroke="url(#goldGrad)" stroke-width="6.5" stroke-linecap="round" />
+              <path d="M50,70 L50,42" stroke="url(#goldGrad)" stroke-width="6.5" stroke-linecap="round" />
+              <polygon points="50,16 56,24 50,32 44,24" fill="#C5A880" />
             </svg>
           </div>
         </div>
