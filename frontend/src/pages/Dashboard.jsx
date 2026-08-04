@@ -290,17 +290,14 @@ const Dashboard = () => {
               Loading your blueprints...
             </div>
           ) : filteredBlueprints.length === 0 ? (
-            /* Styled Empty State with Convergent Debating Symbol */
+            /* Styled Empty State aligned directly on page background */
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              padding: '4rem 2rem',
-              backgroundColor: 'rgba(13, 20, 24, 0.4)',
-              border: '1px dashed rgba(197, 168, 128, 0.15)',
-              borderRadius: '12px',
+              padding: '3rem 2rem',
               color: '#8A99AD'
             }}>
               <div style={{
