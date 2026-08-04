@@ -34,7 +34,7 @@ const SectionBlock = ({ section }) => {
       }
     };
     loadVersions();
-  }, [section.id, currentBlueprint?.status, activeVersions[section.id]?.id]);
+  }, [section.id, currentBlueprint?.status, activeVersions[section.id]?.id, section.version_count]);
 
   const handleSelect = () => {
     selectSection(section);

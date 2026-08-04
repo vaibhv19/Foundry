@@ -4,7 +4,7 @@ from .models import Blueprint, Section, Version, Idea, Export, DecisionLog
 class VersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Version
-        fields = ('id', 'version_number', 'content_markdown', 'is_active', 'created_at', 'agent_run', 'job')
+        fields = ('id', 'section', 'version_number', 'content_markdown', 'is_active', 'created_at', 'agent_run', 'job')
 
 class SectionSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source='get_category_display', read_only=True)
