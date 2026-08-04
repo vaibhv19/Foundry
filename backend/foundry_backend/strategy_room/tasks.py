@@ -3,16 +3,16 @@ from celery import shared_task
 from blueprints.models import Blueprint, BlueprintStatus, Job, Section, Version, SectionCategory, DecisionLog
 from .runner import GraphRunner
 from .publisher import publish_event
-from decision_memory.engine import DecisionMemoryEngine
-from decision_memory.conflict import ConflictDetector
-from decision_memory.extractor import DecisionExtractor
+from foundry_backend.decision_memory.engine import DecisionMemoryEngine
+from foundry_backend.decision_memory.conflict import ConflictDetector
+from foundry_backend.decision_memory.extractor import DecisionExtractor
 from foundry_backend.ai_engine.exceptions import ConsistencyViolationError
-from strategy_room.routing_rules import AgentRouter
-from strategy_room.nodes.investor import investor_node
-from strategy_room.nodes.pm import pm_node
-from strategy_room.nodes.tech_lead import tech_lead_node
-from strategy_room.nodes.consistency import consistency_check_node
-from strategy_room.nodes.tie_breaker import tie_breaker_node
+from foundry_backend.strategy_room.routing_rules import AgentRouter
+from foundry_backend.strategy_room.nodes.investor import investor_node
+from foundry_backend.strategy_room.nodes.pm import pm_node
+from foundry_backend.strategy_room.nodes.tech_lead import tech_lead_node
+from foundry_backend.strategy_room.nodes.consistency import consistency_check_node
+from foundry_backend.strategy_room.nodes.tie_breaker import tie_breaker_node
 
 @shared_task(bind=True)
 def run_strategy_debate(self, blueprint_id: str):

@@ -73,7 +73,7 @@ class GraphRunner:
                 }
                 node_origin = node_origin_map.get(category, "System")
 
-                from decision_memory.extractor import DecisionExtractor
+                from foundry_backend.decision_memory.extractor import DecisionExtractor
                 from blueprints.models import DecisionLog
                 try:
                     decisions = DecisionExtractor.extract_decisions_from_text(content, node_origin)
