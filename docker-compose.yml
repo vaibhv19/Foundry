@@ -46,6 +46,24 @@ services:
       redis:
         condition: service_started
 
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: foundry_celery
+    command: celery -A foundry_backend worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgres://foundry_user:foundry_pass@db:5432/foundry
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=True
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   frontend:
     build:
       context: ./frontend
