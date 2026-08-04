@@ -15,3 +15,4 @@ langgraph
 channels
 channels_redis
 celery
+daphne
