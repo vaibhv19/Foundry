@@ -2,9 +2,14 @@ from django.conf import settings
 from foundry_backend.ai_engine.providers.gemini import GeminiProvider
 from ..state import StrategyRoomState
 from ..prompts import INVESTOR_PROMPT, SYSTEM_PROMPT
+from ..publisher import publish_event
 
 def investor_node(state: StrategyRoomState) -> dict:
     provider = GeminiProvider()
+
+    blueprint_id = state.get('blueprint_context', {}).get('blueprint_id')
+    if blueprint_id:
+        publish_event(blueprint_id, 'NODE_STARTED', {"node": "Investor"})
 
     idea = state.get('idea', '')
     blueprint_context = str(state.get('blueprint_context', {}))
@@ -20,7 +25,21 @@ def investor_node(state: StrategyRoomState) -> dict:
         active_decisions=active_decisions_str
     )
 
-    response_text = provider.generate(prompt, system_instruction=SYSTEM_PROMPT)
+    response_chunks = []
+    try:
+        stream = provider.generate_stream(prompt, system_instruction=SYSTEM_PROMPT)
+        for chunk in stream:
+            response_chunks.append(chunk)
+            if blueprint_id:
+                publish_event(blueprint_id, 'TOKEN', {"node": "Investor", "token": chunk})
+        response_text = "".join(response_chunks)
+    except Exception as e:
+        if blueprint_id:
+            publish_event(blueprint_id, 'ERROR', {"node": "Investor", "error": str(e)})
+        raise e
+
+    if blueprint_id:
+        publish_event(blueprint_id, 'NODE_COMPLETED', {"node": "Investor"})
 
     new_constraints = state.get('constraints', []).copy()
     if not any("budget_limit" in c for c in new_constraints):
@@ -42,3 +61,4 @@ def investor_node(state: StrategyRoomState) -> dict:
         "constraints": new_constraints,
         "current_agent": "Investor"
     }
+

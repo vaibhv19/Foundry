@@ -3,6 +3,7 @@ from typing import List
 from foundry_backend.ai_engine.providers.gemini import GeminiProvider
 from ..state import StrategyRoomState
 from ..prompts import CONSISTENCY_CHECK_PROMPT, SYSTEM_PROMPT
+from ..publisher import publish_event
 
 class ConflictItem(BaseModel):
     key: str
@@ -15,6 +16,10 @@ class ConflictAnalysis(BaseModel):
 
 def consistency_check_node(state: StrategyRoomState) -> dict:
     provider = GeminiProvider()
+
+    blueprint_id = state.get('blueprint_context', {}).get('blueprint_id')
+    if blueprint_id:
+        publish_event(blueprint_id, 'NODE_STARTED', {"node": "Consistency_Check"})
 
     idea = state.get('idea', '')
     blueprint_context = str(state.get('blueprint_context', {}))
@@ -32,13 +37,25 @@ def consistency_check_node(state: StrategyRoomState) -> dict:
         pending_decisions=pending_decisions_str
     )
 
-    analysis = provider.generate_structured(prompt, ConflictAnalysis, system_instruction=SYSTEM_PROMPT)
+    try:
+        analysis = provider.generate_structured(prompt, ConflictAnalysis, system_instruction=SYSTEM_PROMPT)
+    except Exception as e:
+        if blueprint_id:
+            publish_event(blueprint_id, 'ERROR', {"node": "Consistency_Check", "error": str(e)})
+        raise e
 
     conflicts = []
     if analysis.has_conflicts:
         conflicts = [item.model_dump() if hasattr(item, 'model_dump') else item.dict() for item in analysis.conflicts]
 
     iteration_count = state.get('iteration_count', 0) + 1
+
+    if blueprint_id:
+        publish_event(blueprint_id, 'NODE_COMPLETED', {
+            "node": "Consistency_Check",
+            "conflicts_found": len(conflicts),
+            "iteration": iteration_count
+        })
 
     messages = state.get('messages', []).copy()
     status_msg = f"Consistency Check complete. Found {len(conflicts)} conflicts."
@@ -58,3 +75,4 @@ def consistency_check_node(state: StrategyRoomState) -> dict:
         "iteration_count": iteration_count,
         "current_agent": "Consistency_Check"
     }
+

@@ -2,9 +2,14 @@ from django.conf import settings
 from foundry_backend.ai_engine.providers.gemini import GeminiProvider
 from ..state import StrategyRoomState
 from ..prompts import PM_PROMPT, SYSTEM_PROMPT
+from ..publisher import publish_event
 
 def pm_node(state: StrategyRoomState) -> dict:
     provider = GeminiProvider()
+
+    blueprint_id = state.get('blueprint_context', {}).get('blueprint_id')
+    if blueprint_id:
+        publish_event(blueprint_id, 'NODE_STARTED', {"node": "Product_Manager"})
 
     idea = state.get('idea', '')
     blueprint_context = str(state.get('blueprint_context', {}))
@@ -24,7 +29,21 @@ def pm_node(state: StrategyRoomState) -> dict:
         conflicts=conflicts_str
     )
 
-    response_text = provider.generate(prompt, system_instruction=SYSTEM_PROMPT)
+    response_chunks = []
+    try:
+        stream = provider.generate_stream(prompt, system_instruction=SYSTEM_PROMPT)
+        for chunk in stream:
+            response_chunks.append(chunk)
+            if blueprint_id:
+                publish_event(blueprint_id, 'TOKEN', {"node": "Product_Manager", "token": chunk})
+        response_text = "".join(response_chunks)
+    except Exception as e:
+        if blueprint_id:
+            publish_event(blueprint_id, 'ERROR', {"node": "Product_Manager", "error": str(e)})
+        raise e
+
+    if blueprint_id:
+        publish_event(blueprint_id, 'NODE_COMPLETED', {"node": "Product_Manager"})
 
     messages = state.get('messages', []).copy()
     messages.append({"sender": "Product_Manager", "content": response_text})
@@ -41,3 +60,4 @@ def pm_node(state: StrategyRoomState) -> dict:
         "agent_outputs": agent_outputs,
         "current_agent": "Product_Manager"
     }
+
