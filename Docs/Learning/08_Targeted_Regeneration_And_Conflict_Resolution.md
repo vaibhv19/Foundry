@@ -62,3 +62,16 @@ The `DecisionMemoryEngine.rollback_to_version` method executes within a Django `
 1.  **Version Activation**: Sets the selected historical `Version.is_active = True` and all sibling versions to `False`.
 2.  **Post-Rollback Deactivation**: Deactivates all `DecisionLog` records associated with the blueprint created after the target version's `created_at` timestamp.
 3.  **Historical Reactivation**: Queries all historical `DecisionLog` records created on or before the target version. For each record, if no newer superseding decision was created on or before that historical timestamp, the record is reactivated (`is_active = True`). All others remain inactive.
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 LLM Parsing Isolation Outside DB Transactions
+* **Problem**: In early versions, we wrapped the entire section regeneration Celery task (including the LLM call to generate content, the `DecisionExtractor` parser call, the `ConflictDetector` analysis, and the database updates) inside a single `transaction.atomic()` block. If the LLM failed to return valid JSON or timed out, the transaction was aborted, but the long-running query kept database locks active, resulting in temporary DB connection timeouts.
+* **Solution**: We isolated database writes. The LLM text generation, JSON schema validation, and conflict verification checks are executed *first* outside of any transaction block. Only after the output is validated and conflict checks pass do we open a `with transaction.atomic():` block to write the new version and update the active decision logs. This minimizes transaction lock durations to milliseconds.
+
+### 5.2 React Conflict Warning Modal UI Lockups
+* **Problem**: In the Document Canvas UI, when a conflict was surfaced, clicking the "Override & Regenerate" button successfully sent the override REST request, but the modal did not close, preventing the user from observing the regeneration stream.
+* **Why it happened**: The override submit action did not clear the `conflictAlert` state inside the Zustand `canvasStore`. The store triggered a re-fetch of blueprint data which returned success, but because the local conflict state remained populated, the React view continued to render the warning modal.
+* **Solution**: We added a clear hook inside the submit action handler. The component invokes `clearConflicts()` to reset the alert state *before* triggering the new regeneration background task, allowing the UI modal to close and enabling smooth transitions to streaming modes.

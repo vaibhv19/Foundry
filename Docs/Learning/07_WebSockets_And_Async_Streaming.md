@@ -102,3 +102,41 @@ Refer to `Docs/WebSocket_Protocol.md` for JSON envelopes. The publisher sends:
   }
 }
 ```
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 Daphne ASGI Protocol Routing Conflicts
+* **Problem**: When starting the backend server with Daphne, HTTP requests loaded successfully, but WebSocket connection handshakes failed instantly with `500 Internal Server Error` or rejected HTTP upgrade headers.
+* **Why it happened**: The project was initially configured to run through the standard WSGI handler. WSGI does not support the stateful TCP connection upgrade sequences required by WebSockets.
+* **Solution**: We configured `foundry_backend/asgi.py` to route traffic based on protocols. We wrap the application in a `ProtocolTypeRouter` that separates `http` and `websocket` paths:
+  ```python
+  application = ProtocolTypeRouter({
+      "http": get_asgi_application(),
+      "websocket": AllowedHostsOriginValidator(
+          JWTAuthMiddleware(
+              URLRouter(websocket_urlpatterns)
+          )
+      ),
+  })
+  ```
+  Daphne coordinates ASGI pipelines, allowing both HTTP endpoints and TCP WebSockets to run on the same network port `8000`.
+
+### 5.2 Thread-Safe Sync-to-Async Channels Publishing
+* **Problem**: When the Celery worker task (`run_strategy_debate`) invoked `channel_layer.group_send()` to stream tokens, the execution failed with synchronous task errors: `SynchronousOnlyOperation: You cannot call this from a sync thread.`
+* **Why it happened**: The Celery worker runs in a synchronous Python environment. However, Django Channels' channel layers are async-native, meaning their operations must be awaited inside an active event loop.
+* **Solution**: We wrapped all WebSocket dispatches inside `asgiref.sync.async_to_sync`:
+  ```python
+  from asgiref.sync import async_to_sync
+  from channels.layers import get_channel_layer
+
+  def publish_event(group, event_type, payload):
+      layer = get_channel_layer()
+      async_to_sync(layer.group_send)(
+          f"blueprint_{group}",
+          {"type": "broadcast_event", "data": {"type": event_type, "payload": payload}}
+      )
+  ```
+  This handles context switching safely, preventing worker threads from blocking or throwing exceptions.
+

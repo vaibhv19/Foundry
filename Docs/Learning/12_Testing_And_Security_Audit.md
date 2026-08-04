@@ -56,3 +56,21 @@ Every API request is audited to enforce ownership scope bounds:
   if not is_owner:
       await self.close(code=4003)
   ```
+
+---
+
+## 4. Engineering Lessons & Troubleshooting Stories
+
+### 4.1 Playwright E2E Timing Race Conditions
+* **Problem**: When executing E2E tests, the initial generation test intermittently failed because the Strategy Room WebSocket connection upgrade request timed out or was closed by the server.
+* **Why it happened**: The test script was registering a user and immediately redirecting to the Strategy Room page. Under Docker test workloads, the WebSocket upgrade request hit the server before the database write transaction for the user account registration had fully committed, causing the ASGI token middleware to reject the handshake.
+* **Solution**: We introduced a synchronizing wait condition in the Playwright spec. The test waits explicitly for the REST registration and login API response data to be fully completed and saved to LocalStorage before calling `page.goto()` to load the streaming dashboard, preventing connection upgrade race conditions.
+
+### 4.2 CSRF Validation Bypasses for Stateless REST Clients
+* **Problem**: When sending POST requests (like overrides) to the REST API, the server returned `403 Forbidden` with error: `CSRF Failed: CSRF cookie not set.`
+* **Why it happened**: Django REST Framework's default settings list `SessionAuthentication` in the `DEFAULT_AUTHENTICATION_CLASSES`. If a session cookie is present in the browser, DRF enforces CSRF validation on all unsafe HTTP methods. This breaks stateless API clients that rely purely on JWT access tokens.
+* **Solution**: We configured our API ViewSets to explicitly declare their authentication classes, using only `JWTAuthentication`:
+  ```python
+  authentication_classes = [JWTAuthentication]
+  ```
+  This disables `SessionAuthentication` for API routes and eliminates CSRF checks, securing the endpoints via JWT signatures.
