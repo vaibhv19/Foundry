@@ -58,13 +58,41 @@ class GraphRunner:
                 Version.objects.filter(section=section).update(is_active=False)
 
                 # Create the new active version
-                Version.objects.create(
+                version = Version.objects.create(
                     section=section,
                     content_markdown=content,
                     is_active=True
                 )
 
+                # Extract and save decisions in database
+                node_origin_map = {
+                    SectionCategory.BUSINESS: "Investor",
+                    SectionCategory.PRODUCT: "Product_Manager",
+                    SectionCategory.TECH_STACK: "Tech_Lead",
+                    SectionCategory.MARKET: "Investor"
+                }
+                node_origin = node_origin_map.get(category, "System")
+
+                from decision_memory.extractor import DecisionExtractor
+                from blueprints.models import DecisionLog
+                try:
+                    decisions = DecisionExtractor.extract_decisions_from_text(content, node_origin)
+                    for dec in decisions:
+                        DecisionLog.objects.create(
+                            blueprint=blueprint,
+                            created_by_version=version,
+                            node_origin=node_origin,
+                            decision_key=dec['decision_key'],
+                            choice_value=dec['choice_value'],
+                            rationale=dec.get('rationale', ''),
+                            priority=dec.get('priority', 'P1'),
+                            is_active=True
+                        )
+                except Exception:
+                    pass
+
             blueprint.status = "READY"
             blueprint.save()
 
         return final_state
+

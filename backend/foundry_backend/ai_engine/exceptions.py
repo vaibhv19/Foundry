@@ -17,3 +17,8 @@ class LLMServiceUnavailableError(LLMError):
 class LLMInvalidResponseError(LLMError):
     """Raised when the LLM provider output is invalid or violates schema validation constraints."""
     pass
+
+class ConsistencyViolationError(LLMError):
+    """Raised when a regenerated section proposes decisions that violate existing commitments."""
+    pass
+
