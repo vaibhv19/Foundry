@@ -27,9 +27,9 @@ def base_state():
     }
 
 
-@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate')
-def test_investor_node(mock_generate, base_state):
-    mock_generate.return_value = "Investor Response Text"
+@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate_stream')
+def test_investor_node(mock_generate_stream, base_state):
+    mock_generate_stream.return_value = ["Investor Response Text"]
 
     res = investor_node(base_state)
     assert res["current_agent"] == "Investor"
@@ -38,9 +38,9 @@ def test_investor_node(mock_generate, base_state):
     assert res["messages"][-1] == {"sender": "Investor", "content": "Investor Response Text"}
 
 
-@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate')
-def test_pm_node(mock_generate, base_state):
-    mock_generate.return_value = "PM Response Text"
+@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate_stream')
+def test_pm_node(mock_generate_stream, base_state):
+    mock_generate_stream.return_value = ["PM Response Text"]
 
     res = pm_node(base_state)
     assert res["current_agent"] == "Product_Manager"
@@ -48,9 +48,9 @@ def test_pm_node(mock_generate, base_state):
     assert res["messages"][-1] == {"sender": "Product_Manager", "content": "PM Response Text"}
 
 
-@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate')
-def test_tech_lead_node(mock_generate, base_state):
-    mock_generate.return_value = "Tech Lead Response Text"
+@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate_stream')
+def test_tech_lead_node(mock_generate_stream, base_state):
+    mock_generate_stream.return_value = ["Tech Lead Response Text"]
 
     res = tech_lead_node(base_state)
     assert res["current_agent"] == "Tech_Lead"
@@ -60,7 +60,6 @@ def test_tech_lead_node(mock_generate, base_state):
 
 @patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate_structured')
 def test_consistency_check_node(mock_gen_struct, base_state):
-    # Mocking conflict detection
     mock_conflict = ConflictItem(key="database", description="Contradictory databases selected", severity="HIGH")
     mock_analysis = ConflictAnalysis(has_conflicts=True, conflicts=[mock_conflict])
     mock_gen_struct.return_value = mock_analysis
@@ -72,12 +71,12 @@ def test_consistency_check_node(mock_gen_struct, base_state):
     assert res["iteration_count"] == 1
 
 
-@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate')
-def test_tie_breaker_node(mock_generate, base_state):
-    mock_generate.return_value = "Tie Breaker Response Text"
+@patch('foundry_backend.ai_engine.providers.gemini.GeminiProvider.generate_stream')
+def test_tie_breaker_node(mock_generate_stream, base_state):
+    mock_generate_stream.return_value = ["Tie Breaker Response Text"]
     base_state["conflicts"] = [{"key": "database", "description": "some conflict"}]
 
     res = tie_breaker_node(base_state)
     assert res["current_agent"] == "Tie_Breaker"
-    assert res["conflicts"] == []  # Assert conflicts are cleared
+    assert res["conflicts"] == []
     assert res["agent_outputs"]["Tie_Breaker"] == "Tie Breaker Response Text"
