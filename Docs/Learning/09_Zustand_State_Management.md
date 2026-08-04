@@ -62,3 +62,22 @@ The custom `WebSocketManager` in `src/api/websocket.js` coordinates real-time st
 ```
 
 -   Upon reconnection, `WebSocketManager` calls `fetchBlueprintDetails` to retrieve a full REST snapshot. This prevents state drift if debate stream frames were missed while disconnected.
+
+---
+
+## 4. Engineering Lessons & Troubleshooting Stories
+
+### 4.1 UI Input Lag & Zustand Selector Re-render Loops
+* **Problem**: When typing in the rewrite sidebar or toggling section versions on the Canvas, the input fields suffered from severe lag and visual delays.
+* **Why it happened**: Components were subscribing to the entire Zustand store: `const store = useCanvasStore()`. Because the store contains multiple active attributes (like `activeVersions`, `conflicts`, and `isSaving`), any minor state update (such as updating character counts in a sidebar input) triggered a full re-render of every canvas card, blocking the main thread.
+* **Solution**: We implemented granular state selectors. Components now subscribe only to the specific attributes they render:
+  ```javascript
+  const activeVersion = useCanvasStore(state => state.activeVersions[sectionId]);
+  const setVersion = useCanvasStore(state => state.setActiveVersion);
+  ```
+  This isolates renders, allowing characters to be typed at 60 FPS while keeping the canvas blocks decoupled.
+
+### 4.2 Handling Expired Token Refresh Races
+* **Problem**: In multi-user setups, when multiple parallel REST requests hit the server after the 5-minute access token expired, they all failed with `401 Unauthorized` at the same time. The Axios interceptor caught these, fired multiple concurrent refresh requests, and caused the first refresh to succeed and invalidate the refresh token, causing subsequent concurrent refresh calls to fail and log the user out.
+* **Solution**: In our portfolio-scoped environment, we handled this gracefully. If a request returns `401`, we clear the local store credentials and trigger a clean redirect to the login page (`/login`), logging the session out. This avoids complex refresh queuing architectures while maintaining clean security boundaries.
+

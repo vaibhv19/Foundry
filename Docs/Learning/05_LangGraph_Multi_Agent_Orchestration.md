@@ -66,3 +66,26 @@ Upon debate completion, the `GraphRunner` wrapper service manages the transactio
 1.  **Sections creation**: Creates `Section` records for `BUSINESS` (Investor content), `PRODUCT` (PM content), `TECH_STACK` (Tech Lead content), and `MARKET` (Investor constraints).
 2.  **Version history**: Registers a new active `Version` record for each section, setting any prior versions to inactive.
 3.  **Status update**: Updates the parent `Blueprint` status to `READY`.
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 LangGraph State Mutation Pitfalls
+* **Problem**: When implementing node functions (e.g. `investor_node`), updating the state dictionary in place (like `state['messages'].append(...)` or `state['current_agent'] = "Investor"`) and returning the same state dictionary caused erratic updates and prevented LangGraph from merging state history properly.
+* **Why it happened**: LangGraph merges dictionary states by evaluating returning key value updates. Mutating keys in-place bypasses the internal state container's change detection engine, causing silent state losses or variable conflicts between execution turns.
+* **Solution**: Nodes must treat the input state dictionary as immutable. Each node extracts what it needs, performs its LLM generation, and returns a *new* dictionary containing only the specific keys it wants to update:
+  ```python
+  return {
+      "messages": list_of_new_messages,
+      "agent_outputs": updated_agent_outputs,
+      "current_agent": "PM"
+  }
+  ```
+  This ensures clean functional state merging.
+
+### 5.2 Strategy Room Timeline active badge rendering for Tie-Breaker
+* **Problem**: During a forced convergence, the Tie-Breaker agent would execute and broadcast updates, but the Left Rail UI timeline did not display the active glow effect for the Tie-Breaker node badge, confusing observers.
+* **Why it happened**: The React `LeftRail` component checked the active agent name string via `strategyStore.activeAgent`. The backend reported the active agent as `"Tie_Breaker"`, whereas the frontend mapped it using `"Tie Breaker"`. The whitespace discrepancy broke the css style binding.
+* **Solution**: We aligned all agent names across the system to follow a unified naming convention. The frontend now normalizes the active agent string (`activeAgent.replace('_', ' ')`), ensuring that both `Tech_Lead` and `Tie_Breaker` display their `.thinking-pulse` keyframe animations correctly.
+
