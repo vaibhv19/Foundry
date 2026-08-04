@@ -40,7 +40,7 @@ This folder contains the step-by-step roadmap docs covering each atomic implemen
 * Verification of deployment guides, settings keys, and local environment files.
 
 ### 12. [Phase 12: Testing and Audit Documentation](file:///d:/Coding/Projects----For%20Resume/Foundry/Docs/Roadmap/Phase_12_Documentation_And_Audit.md)
-* Playwright E2E browser tests, rate limits stresstests, ownership access scopes, and repository master README documents.
+* Playwright E2E browser tests, rate limits stress tests, ownership access scopes, and repository master README documents.
 
 ---
 
