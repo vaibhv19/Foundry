@@ -75,4 +75,18 @@ When an override is applied, it runs within a database transaction:
             │
             ▼ (Invalidates)
 [orm: DjangoORM] ──► (Invalidates) ──► [auth: SimpleJWT]
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 Cyclic Dependencies & Infinite Traversal Recursing
+* **Problem**: In the `DependencyGraphTraverser`, navigating the relationship tree to locate downstream child keys that should be deactivated was vulnerable to infinite execution loops. If a dependency chain contained cyclic links (e.g. key A depends on key B, which depends on key A), the traversal function would run recursively until it crashed with a `RecursionError` or exhausted system memory.
+* **Solution**: We implemented the traversal loop using a Breadth-First Search (BFS) combined with an explicit tracking set. The method maintains a `visited = set()` container. When exploring the children of a node, keys are added to `visited`. If a child key is already present in the set, it is skipped, breaking cycles and guaranteeing that the traversal completes in $O(V + E)$ time.
+
+### 5.2 SQLite Transaction Locks in Local Environments
+* **Problem**: During local dev testing using default configurations, concurrent API override requests triggered Django database errors: `OperationalError: database is locked`.
+* **Why it happened**: SQLite does not support concurrent write transactions and locks the entire database file during writes. Since override tasks execute complex operations (marking parent records, invalidating children, and writing logs), overlapping requests blocked one another.
+* **Solution**: We configured the project to use PostgreSQL for both local development and testing environments. PostgreSQL supports fine-grained row-level locking (`SELECT ... FOR UPDATE`) and concurrency, allowing multiple read/write transactions to execute in parallel.
+
 ```

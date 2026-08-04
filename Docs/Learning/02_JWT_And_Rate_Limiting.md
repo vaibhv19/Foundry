@@ -86,3 +86,26 @@ throttle_<user_id>_<minute_timestamp>
 ### Cache Backend
 
 Throttling leverages Django 4.2's built-in Redis cache backend `django.core.cache.backends.redis.RedisCache` connecting directly to our Dockerized Redis instance.
+
+---
+
+## 4. Engineering Lessons & Troubleshooting Stories
+
+### 4.1 SimpleJWT Custom Token Payload Subclassing
+* **Problem**: Standard SimpleJWT views (`TokenObtainPairView`) return only the JSON string properties `access` and `refresh`. However, the frontend auth store requires the authenticated user details (`id`, `email`, `name`, `tier`) nested inside a unified payload to bind state instantly.
+* **Solution**: Subclassed `TokenObtainPairView` inside `users/views.py`. We overridden the `post()` handler, fetched the target user profile via the validated email from the serializer context, and explicitly reshaped the response data dictionary:
+  ```python
+  response.data = {
+      "token": {
+          "access": str(token.access_token),
+          "refresh": str(token)
+      },
+      "user": UserSerializer(user).data
+  }
+  ```
+  This resolved the client DTO binding mismatch without adding secondary auth validation requests.
+
+### 4.2 Avoiding Race Conditions in Rolling Throttle Buckets
+* **Problem**: Under heavy parallel request stress tests, traditional get-then-set caching in custom rate limiters caused race conditions. Two concurrent requests reading the current minute bucket at value 9 could both allow the request before either updated the bucket to 10, thus bypassing limits.
+* **Solution**: We implemented the throttle check inside `users/throttling.py` using atomic Redis keys. We utilize the Django cache backend's `.incr()` operation, which translates directly to the Redis `INCR` command. Since `INCR` is thread-safe and atomic in Redis, we increment first and check the result against the tier's limit. On the initial key creation, we call `.expire()` to set key expiration to 60 seconds, preventing old counters from leaking memory.
+

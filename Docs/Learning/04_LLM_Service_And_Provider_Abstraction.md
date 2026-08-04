@@ -78,3 +78,18 @@ For agent coordination and state machines, generating structured JSON is critica
     enhanced_prompt = f"{prompt}\n\nYou MUST return output strictly matching this JSON schema:\n{schema_dict}"
     ```
 3.  **Pydantic Validation**: The resulting string is parsed and validated directly using `output_schema.model_validate_json()` (with backward compatibility fallbacks), returning a strongly typed Pydantic instance or raising `LLMInvalidResponseError` on schema violations.
+
+---
+
+## 5. Engineering Lessons & Troubleshooting Stories
+
+### 5.1 F-String Double Curly Brace Escaping
+* **Problem**: In the prompt composition pipeline, we inject structured JSON schemas directly into prompts to guide the LLM. However, formatting these prompt templates with Python f-strings resulted in immediate `KeyError` crashes.
+* **Why it happened**: Python f-strings interpret single curly braces `{` and `}` as variables or format placeholders. Since JSON schemas contain extensive curly braces, Python attempted to resolve them as dictionary keys, which failed.
+* **Solution**: We escaped all schema string parameters. In Python templates, replacing single curly braces with double curly braces (i.e. `{` $\rightarrow$ `{{` and `}` $\rightarrow$ `}}`) tells the f-string processor to treat them as literal text. Alternatively, we serialized the JSON schema using `json.dumps()` *prior* to injecting it as a string argument, bypassing the f-string parse pass entirely.
+
+### 5.2 Google GenerativeAI Deprecation Warning Isolation
+* **Problem**: Standard calls to `google-generativeai` package raised warning messages regarding the deprecation of support for the package, urging teams to migrate to the newer `google-genai` library.
+* **Why it mattered**: Upgrading a library in a production project can cause regression bugs if API surfaces change.
+* **Solution**: Our early choice to build the `LLMService` abstract client layer decoupled the rest of the Django project from the SDK. Since all worker nodes call `LLMService.generate()` and `LLMService.generate_structured()`, migrating the underlying library from `google-generativeai` to `google-genai` in a future update only requires rewriting the concrete `GeminiProvider` class, leaving the rest of the agent runtime untouched.
+
