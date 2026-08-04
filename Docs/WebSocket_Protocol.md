@@ -131,10 +131,29 @@ When the client reconnects:
 - [Agent_Runtime.md](Agent_Runtime.md)
 - [Error_Handling.md](Error_Handling.md)
 
+## 8. Engineering Rationale: WebSocket Architecture & Reconnection
+
+### 8.1 URL Token Query Parameters
+Because browser-native WebSocket upgrades do not support custom headers (like `Authorization`), we pass credentials via the query string: `?token=<jwt_token>`.
+* **Security Validation**: The custom ASGI middleware (`JWTAuthMiddlewareStack`) parses this token immediately on handshake. If valid, the connection is accepted and scoped to the user. If the token is invalid or expired, the socket is immediately closed with code `4003`, protecting backend channel resources.
+
+### 8.2 ASGI Group Serialization & Payload Nesting
+* **ASGI Broadcast Rules**: Django Channels uses Redis to coordinate message groups. When a worker publishes an update (like a token chunk), it wraps the event in an ASGI dictionary container.
+* **Double-Serialization Guard**: To prevent CPU overhead from double-parsing stringified JSON, the payload is structured as a single nested Python dictionary (`"payload"`) which Daphne serializes to the client. The frontend client-side socket manager (`websocket.js`) extracts data directly using `data.payload.<attribute>`.
+
+### 8.3 Client-Side Reconnection with Exponential Backoff
+If a user loses connection (e.g. cellular handoff or container restarts), the socket must recover without manual page refreshes.
+* **Algorithm**:
+  1. The client catches `onclose` or `onerror` events.
+  2. Rather than immediately reconnecting (which can crash the server under heavy client loads), the manager applies an exponential backoff formula: $T_{retry} = \min(2^{attempt} \times 1000, 30000)$ milliseconds.
+  3. On a successful handshake, the retry attempts counter resets to 0.
+  4. The client automatically invokes `fetchBlueprintDetails` to retrieve any sections completed while offline, preventing UI state staleness.
+
 ---
 
-## 8. Implementation Notes & Deviations
+## 9. Implementation Notes & Deviations
 
 * **Channels Payload Envelope Nesting**: In the final implementation, ASGI group broadcast messages are dispatched with data nested within a `payload` dictionary attribute. The frontend client-side `websocket.js` parser maps payloads using `data.payload` (e.g. `data.payload.message`, `data.payload.token`, `data.payload.node`, etc.).
 * **Reconnection Manager**: The client-side WebSocket manager (`frontend/src/api/websocket.js`) handles transient disconnects using an automatic exponential backoff retry mechanism (starting at 1s, doubling on failure, capped at 30s). Upon a successful reconnect, it automatically fires `fetchBlueprintDetails` to retrieve the latest blueprint and section snapshot.
+
 
