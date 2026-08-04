@@ -15,9 +15,10 @@ django_asgi_app = get_asgi_application()
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from foundry_backend.strategy_room.routing import websocket_urlpatterns
+from foundry_backend.strategy_room.middleware import JWTAuthMiddleware
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": URLRouter(websocket_urlpatterns),
+    "websocket": JWTAuthMiddleware(URLRouter(websocket_urlpatterns)),
 })
 
