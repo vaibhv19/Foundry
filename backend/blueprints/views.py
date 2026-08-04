@@ -110,6 +110,23 @@ class SectionViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = VersionSerializer(versions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'])
+    def regenerate(self, request, pk=None):
+        section = self.get_object()
+        user_note = request.data.get('user_note', '')
+        enforce_previous_decisions = request.data.get('enforce_previous_decisions', True)
+
+        from foundry_backend.strategy_room.tasks import run_section_regeneration
+        task = run_section_regeneration.delay(
+            section_id=str(section.id),
+            user_note=user_note,
+            enforce_previous_decisions=enforce_previous_decisions
+        )
+        return Response({
+            "task_id": task.id,
+            "status": "QUEUED"
+        }, status=status.HTTP_202_ACCEPTED)
+
 
 class VersionViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
@@ -121,13 +138,10 @@ class VersionViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=['post'])
     def restore(self, request, pk=None):
         version = self.get_object()
-        section = version.section
+        from foundry_backend.decision_memory.engine import DecisionMemoryEngine
+        DecisionMemoryEngine.rollback_to_version(str(version.id))
 
-        with transaction.atomic():
-            section.versions.all().update(is_active=False)
-            version.is_active = True
-            version.save()
-
+        version.refresh_from_db()
         serializer = VersionSerializer(version)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
