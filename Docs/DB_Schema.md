@@ -209,8 +209,28 @@ When a user requests a regeneration for a **Tech Stack** section (Flow 3), the b
 
 ---
 
-## 5. Implementation Notes & Deviations
+## 5. Engineering Rationale & Database Modeling Choices
+
+### 5.1 Relational Integrity vs. Document Store
+Although blueprints are presented to the client as single structured text blocks, modeling them as raw documents in a MongoDB or JSON store would complicate section-level mutations and consistency locks.
+* **Granular Section Updates**: Modeling sections as distinct records (`sections`) associated with independent, auto-incrementing `Version` tables ensures that rewrites target only specific markdown blocks without modifying the rest of the blueprint.
+* **Auditable Override Chains**: The self-referential `supersedes` foreign key on `decision_logs` creates a linked-list history of overridden constraints (e.g., PostgreSQL is superseded by MongoDB). This preserves the reasoning chain and allows the system to restore the precise decision state during canvas version rollbacks.
+
+### 5.2 Soft Updates (`is_active`) vs. Hard Deletes
+Hard-deleting overridden decisions or section versions would destroy historical state, preventing the Decision Memory Engine from tracing design evolution.
+* **Audit Trail**: Using `is_active = False` on superseded decisions allows the UI to render the historical decision log and lets the backend perform rollback operations without rebuilding state from scratch.
+* **Soft Deletes on Blueprints**: Soft deletes are enforced using an `is_deleted` boolean flag on the `Blueprint` model. A custom Django manager overrides the default `get_queryset()` to omit records where `is_deleted = True`, keeping them hidden from standard API actions while retaining database reference integrity for analytical queries.
+
+### 5.3 Indexing and Retrieval Performance
+The database enforces strict indexing strategies to ensure O(1) retrieval speeds during high-volume operations:
+* **`decision_log(blueprint_id, is_active)`**: A composite index optimized for context retrieval queries. Prepend-injecting constraints to the LLM during section regenerations requires scanning only the active decisions of a single blueprint, bypassing global table scans.
+* **`versions(section_id, version_number)`**: Optimized for fetching historical versions when rendering the Canvas Version pills or restoring a prior snapshot.
+
+---
+
+## 6. Implementation Notes & Deviations
 
 * **ORM vs Database Column Naming**: Foreign keys in the Django model code are named conceptually as ORM relationships (e.g. `supersedes` and `created_by_version`), which Django automatically translates to suffix database columns (e.g. `supersedes_id` and `created_by_version_id`).
 * **Deferred Tables (`attachments`)**: The `attachments` table specified in section 3.8.5 was deferred from the final implementation scope as it was not required for the portfolio-grade generation, revision, or markdown download capabilities.
-* **Blueprint Soft Deletes**: Implemented via a custom Django manager on `Blueprint` which overrides `get_queryset()` to filter out records where `is_deleted = True`.
+* **Blueprint Soft Deletes**: Implemented via a custom Django manager on `Blueprint` which overrides `get_queryset()` to filter out records where `is_deleted = True`.
+
