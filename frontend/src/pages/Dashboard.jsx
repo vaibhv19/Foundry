@@ -77,21 +77,35 @@ const Dashboard = () => {
           transform: translateY(-2px);
           box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5), 0 0 30px rgba(197, 168, 128, 0.01);
         }
-        .dash-input {
-          transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        .dash-input-textarea {
+          transition: all 0.15s ease;
           font-family: 'Plus Jakarta Sans', sans-serif;
+          border: none !important;
+          border-bottom: 1px solid rgba(197, 168, 128, 0.15) !important;
+          background-color: rgba(0, 0, 0, 0.25) !important;
+          border-radius: 6px 6px 0 0 !important;
         }
-        .dash-input::placeholder {
-          color: #3A474D !important;
-          opacity: 1;
+        .dash-input-textarea:hover {
+          border-bottom-color: rgba(197, 168, 128, 0.4) !important;
         }
-        .dash-input:hover {
-          border-color: rgba(197, 168, 128, 0.2) !important;
+        .dash-input-textarea:focus {
+          border-bottom-color: #C5A880 !important;
+          background-color: rgba(0, 0, 0, 0.35) !important;
+          outline: none;
         }
-        .dash-input:focus {
-          border-color: #C5A880 !important;
-          box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.1);
-          background-color: #070B0D !important;
+        .dash-input-search {
+          transition: all 0.15s ease;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          border: none !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+          background-color: transparent !important;
+          border-radius: 0 !important;
+        }
+        .dash-input-search:hover {
+          border-bottom-color: rgba(197, 168, 128, 0.3) !important;
+        }
+        .dash-input-search:focus {
+          border-bottom-color: #C5A880 !important;
           outline: none;
         }
         .dash-btn-primary {
@@ -204,13 +218,10 @@ const Dashboard = () => {
               onChange={(e) => setIdeaText(e.target.value)}
               placeholder="Describe your startup idea in detail (e.g., A subscription box for gourmet coffee roasters, focusing on local sustainable micro-lots...)"
               rows={4}
-              className="dash-input"
+              className="dash-input-textarea"
               style={{
                 width: '100%',
                 padding: '1rem',
-                borderRadius: '8px',
-                border: '1px solid #1E292B',
-                backgroundColor: '#070B0D',
                 color: '#F1F5F9',
                 resize: 'vertical',
                 boxSizing: 'border-box',
@@ -232,7 +243,7 @@ const Dashboard = () => {
                   backgroundColor: '#C5A880',
                   color: '#030608',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '24px',
                   fontWeight: '600',
                   fontSize: '0.9rem',
                   cursor: 'pointer'
@@ -269,13 +280,10 @@ const Dashboard = () => {
                 placeholder="Search blueprints..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="dash-input"
+                className="dash-input-search"
                 style={{
                   width: '100%',
                   padding: '0.6rem 1rem 0.6rem 2.25rem',
-                  borderRadius: '6px',
-                  border: '1px solid #1E292B',
-                  backgroundColor: 'rgba(13, 20, 24, 0.6)',
                   color: '#F1F5F9',
                   boxSizing: 'border-box',
                   fontSize: '0.85rem'
@@ -350,10 +358,9 @@ const Dashboard = () => {
                         fontSize: '0.7rem',
                         fontWeight: '600',
                         letterSpacing: '0.04em',
-                        padding: '0.2rem 0.6rem',
-                        borderRadius: '4px',
-                        backgroundColor: bp.status === 'READY' ? 'rgba(30, 94, 78, 0.15)' : 'rgba(197, 168, 128, 0.1)',
-                        border: bp.status === 'READY' ? '1px solid rgba(30, 94, 78, 0.25)' : '1px solid rgba(197, 168, 128, 0.2)',
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '12px',
+                        backgroundColor: bp.status === 'READY' ? 'rgba(30, 94, 78, 0.25)' : 'rgba(197, 168, 128, 0.15)',
                         color: bp.status === 'READY' ? '#3CD070' : '#C5A880'
                       }}>
                         {bp.status}
