@@ -1,0 +1,11 @@
+{
+  "name": "foundry-e2e",
+  "version": "1.0.0",
+  "description": "Playwright end-to-end tests for Foundry",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
