@@ -176,8 +176,32 @@ Foundry uses standard HTTP codes:
 
 ---
 
-## Part G: Implementation Notes & Deviations
+## Part G: Engineering Rationale & Security Boundaries
+
+### 1. Hybrid REST and WebSocket Architecture
+Foundry segregates operations based on transaction lifecycles:
+* **Synchronous REST (HTTP)**: Selected for deterministic CRUD actions (e.g. duplicating plans, renaming titles, fetching section history, triggering overrides). These actions depend on instant database validations and ACID consistency.
+* **Asynchronous WebSockets (WS)**: Used strictly for real-time progress updates, token streaming, and debate round transition indicators. Keeping the WebSocket protocol uni-directional (Server $\rightarrow$ Client) simplifies state synchronization, preventing complex race conditions on concurrent edits.
+
+### 2. WebSocket Authentication Query Tokens
+Standard browser WebSocket APIs do not support adding custom headers (like `Authorization: Bearer <token>`) during the initial HTTP upgrade request.
+* **Token Query Strategy**: The client sends the JWT access token in the URL parameters (`?token=<jwt>`).
+* **In-Memory Decoding**: A custom ASGI Middleware stack interceptor decodes this query parameter using the Django setting's signing keys on connection establishment. If invalid, the connection is instantly rejected with close code `4003` (Unauthorized), avoiding unnecessary TCP state pool exhaustion.
+
+### 3. Resource Concealment & Scoping Bounds
+To protect user blueprints from unauthorized access and cross-tenant leakage:
+* **Scoping Filter**: The view query sets are strictly bound to the authenticated request user:
+  ```python
+  def get_queryset(self):
+      return Blueprint.objects.filter(user=self.request.user)
+  ```
+* **Concealment (404 instead of 403)**: If User B requests a blueprint belonging to User A, Django raises a `Http404` error instead of `403 Forbidden`. This is a security defense-in-depth practice that conceals the existence of other users' resources, preventing resource enum sweeps.
+
+---
+
+## Part H: Implementation Notes & Deviations
 
 * **Nest Decisions Log**: The standalone `/decisions/blueprint/{id}/` endpoint specified in Part A, Section 5 was merged directly into `BlueprintDetail` returned by `GET /api/v1/blueprints/{id}/`.
 * **Decision Override Endpoint**: The manual override is implemented under `/api/v1/blueprints/{id}/override_decision/` rather than `/decisions/{id}/override/`, returning the fully updated `BlueprintDetail` payload.
-* **WebSocket Client-to-Server Commands**: Control commands (like `resume_generation` and `request_state`) are deferred in v1, with status tracking driven entirely by REST endpoints and websocket server-to-client broadcasts.
+* **WebSocket Client-to-Server Commands**: Control commands (like `resume_generation` and `request_state`) are deferred in v1, with status tracking driven entirely by REST endpoints and websocket server-to-client broadcasts.
+

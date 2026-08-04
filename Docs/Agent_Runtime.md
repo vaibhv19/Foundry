@@ -108,10 +108,31 @@ The runtime does not need to restart from scratch because the decision memory an
 - [App_Flow.md](App_Flow.md)
 - [WebSocket_Protocol.md](WebSocket_Protocol.md)
 
+## 9. Engineering Rationale & Background Jobs Architecture
+
+### 9.1 Background Agent Processing (Celery)
+Multi-agent debates are execution-heavy: they orchestrate multiple LLM queries, evaluate structured output schemas, parse constraints, and verify logical consistency.
+* **Process Isolation**: Running the LangGraph state machine inside background Celery worker daemons isolates these heavy CPU and network operations from the web uWSGI/Daphne workers. This prevents HTTP request starvation, keeping the core web interface highly responsive.
+* **Redis as a Task Broker**: Redis acts as the message broker, providing low-latency queueing and FIFO task execution.
+
+### 9.2 Relational Checkpoint Persistence
+Default LangGraph architectures use memory savers (`MemorySaver`) or local database checkpointers (`SqliteSaver`) to track run states.
+* **Django ORM Consolidation**: Foundry maps graph checkpoints directly to Django relational models (`AgentRun`, `AgentMessage`, `GenerationEvent`, `DecisionLog`, `Version`). 
+* **Benefits**:
+  1. Consolidated persistence: PostgreSQL remains the single source of truth, avoiding the synchronization issues of separate SQLite checkpointer files.
+  2. Transactional safety: Database mutations happen within Django transactions, ensuring that decisions and section version updates are saved atomically.
+  3. Relational querying: Client applications can query, list, search, and delete run history directly using standard REST serializers.
+
+### 9.3 Real-time ASGI Event Streaming
+To stream tokens as they generate:
+* **Redis Channels Group**: The Celery worker task publishes events to a Redis group channel key named `blueprint_{blueprint_id}`.
+* **ASGI Consumer Broadcast**: The Django ASGI container (`Daphne`) runs a corresponding `StrategyConsumer` WebSocket loop. It subscribes to the channel group, intercepts the task messages, and writes them straight to the client socket buffers.
+
 ---
 
-## 9. Implementation Notes & Deviations
+## 10. Implementation Notes & Deviations
 
 * **State Checkpointing & Persistence**: In the final implementation, LangGraph execution state checkpoints are not kept using native SQLite/PostgreSQL checkpoint savers. Instead, task-level inputs and outputs are persisted to Django model tables (`AgentRun`, `AgentMessage`, `GenerationEvent`, `DecisionLog`) on each node transition inside the Celery worker thread context.
 * **Celery Async Workers**: The runtime is executed in a background worker context via Celery tasks (`run_strategy_debate` and `run_section_regeneration`). Progress logs and streaming tokens are published to a Redis channel layer group (`blueprint_{id}`), which the Django ASGI Daphne container listens to and broadcasts over WebSocket connections to active clients.
+
 
