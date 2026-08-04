@@ -105,3 +105,11 @@ The lifecycle now follows the production-grade sequence:
 | **Review (Flow 2)** | **Display:** UI surfaces the reasoning behind specific blocks to the user. | Read-Only |
 | **Regeneration (Flow 3)** | **Enforce:** Engine retrieves logs and injects them into the LLM prompt to prevent contradictions. | **Retrieval & Injection** |
 | **Export (Flow 4)** | **N/A:** System only aggregates finalized text. | None |
+
+---
+
+## 7. Implementation Notes & Deviations
+
+* **API Endpoints Prefix**: The implemented API endpoints follow the `/api/v1/` prefix structure (e.g., `/api/v1/blueprints/` and `/api/v1/sections/{id}/regenerate/`).
+* **Conflict Surfacing Promotion**: The conflict check described as a stretch goal in Section 3, step 8 is a fully implemented core feature. If a rewrite instructions note violates a locked decision, the backend flags a `DECISION_OVERRIDE_REQUIRED` validation response. The frontend Zustand stores intercept this, display the "Consistency Conflict!" warning block in the `RightRail`, and prompt the user to input a custom override rationale before forcing re-submission.
+* **WebSocket Streaming Protocol**: Live token updates are streamed under the `TOKEN` event channel, while node state updates (`NODE_STARTED`, `NODE_COMPLETED`) drive the active progress timeline pulses in the `LeftRail` component.

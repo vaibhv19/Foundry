@@ -51,3 +51,14 @@ Foundry uses a provider abstraction so the orchestration layer is not coupled to
 - It returns structured output for decision extraction and consistency checks.
 - It enforces timeout controls, retry limits, and normalized error handling.
 - The runtime can cancel or retry a specific node without disrupting the rest of the blueprint generation flow.
+
+---
+
+## 8. Implementation Notes & Deviations
+
+* **Interactive Document Canvas UI**: Rather than utilizing external rich-text editor libraries like Tiptap or Draft.js, the application implements a custom block-based React workspace (`CanvasGrid.jsx` and `SectionBlock.jsx`). Each segment (Market, Product, Tech Stack, Business) is rendered inside its own card container. Clicking the edit icon opens a dedicated custom `RewriteSidebar` where the user inputs prompt notes for targeted rewrites.
+* **Authentication**: SimpleJWT was selected as the JWT authentication standard to handle secure, stateless token authentication across REST and WebSocket consumer handshakes.
+* **Libraries Used**:
+  - Frontend: Zustand (`^5.0.14`), Lucide React (`^1.28.0`), Axios (`^1.19.0`), React Router DOM (`^7.18.2`).
+  - Backend: Django REST Framework (`4.2.30`), channels (`4.0.0`), celery (`5.3.6`), langchain-core / langgraph (`0.1`), pydantic (`v2`).
+

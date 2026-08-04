@@ -37,3 +37,11 @@
 - The system supports bounded iterations, convergence checks, and a tie-breaking strategy when the debate cannot fully resolve.
 - Regeneration is section-aware: changing the tech stack can trigger a targeted rerun of the Tech Lead and related decision review, while the PM and Investor may also be re-invoked when the scope or business assumptions change.
 - The blueprint lifecycle expands beyond queued/generating/ready to support drafting, partial generation, editing, export, archival, failure, and deletion states.
+
+---
+
+## Implementation Status & Notes
+
+* **Decision Log & Conflict Surfacing**: Fully implemented. The frontend workspace renders the active decision log in the right-side rail, intercepts websocket validation events, and displays warning alerts when edits conflict with existing choices. A modal allows the user to input a custom override rationale to overwrite decisions.
+* **Exports**: Currently implemented as a Markdown `.md` document compiler. It reads the section version contents, builds a master markdown template, saves it to the local system media storage, and downloads the file through a scoped API endpoint.
+
