@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useBlueprintStore } from '../store/blueprintStore';
 import { useStrategyStore } from '../store/strategyStore';
-import { useCanvasStore } from '../store/canvasStore';
 import socketManager from '../api/websocket';
 
 import MissionControlLayout from '../components/layout/MissionControlLayout';
