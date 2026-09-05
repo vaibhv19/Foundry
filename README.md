@@ -12,7 +12,7 @@ Foundry is a portfolio-grade, multi-agent AI web application that automatically 
 
 ## Related Writing
 
-* [Real-Time, Evolved](https://vaibhav19.vercel.app/writing/the-evolution-of-my-real-time-architecture)
+* [Real-Time, Evolved](https://vaibhv19.dev/writing/the-evolution-of-my-real-time-architecture)
 
 ---
 
